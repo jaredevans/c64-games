@@ -16,7 +16,7 @@ waves resume. Lose your last ship and it's **GAME OVER** — the starfield freez
 score table** with your new entry flashing, then it's back to the animated title screen, ready for
 another run.
 
-### Demo
+### Demo Video
 
 ![Gameplay](shmup.gif)
 
