@@ -123,20 +123,21 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=())
     proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                             start_new_session=True)
     try:
-        s = None
-        for _ in range(100):
-            try:
-                s = socket.create_connection(('127.0.0.1', port), timeout=1)
-                break
-            except OSError:
-                time.sleep(0.1)
-        if s is None:
-            raise RuntimeError('could not connect to VICE binary monitor')
-        s.settimeout(8)
         t0 = time.time()
         reqid = [100]
 
-        def get(a, n):
+        def connect():
+            # connect just before reading: an idle connection opened during boot can be dropped
+            for _ in range(100):
+                try:
+                    c = socket.create_connection(('127.0.0.1', port), timeout=1)
+                    c.settimeout(8)
+                    return c
+                except OSError:
+                    time.sleep(0.1)
+            raise RuntimeError('could not connect to VICE binary monitor')
+
+        def get(s, a, n):
             reqid[0] += 1
             body = struct.pack('<BHHBH', 0, a, a + n - 1, 0, 0)
             s.sendall(struct.pack('<BBIIB', 0x02, 0x02, len(body), reqid[0], 0x01) + body)
@@ -150,7 +151,7 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=())
                     ln = struct.unpack('<H', data[:2])[0]
                     return data[2:2 + ln]
 
-        def resume():
+        def resume(s):
             reqid[0] += 1
             s.sendall(struct.pack('<BBIIB', 0x02, 0x02, 0, reqid[0], 0xaa))
 
@@ -158,8 +159,18 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=())
         results = []
         for (w, a, n) in plan:
             time.sleep(max(0, w - (time.time() - t0)))
-            results.append(get(a, n))
-            resume()
+            for attempt in range(2):
+                s = connect()
+                try:
+                    results.append(get(s, a, n))
+                    resume(s)
+                    break
+                except (BrokenPipeError, ConnectionResetError, RuntimeError):
+                    if attempt:
+                        raise
+                    time.sleep(0.3)
+                finally:
+                    s.close()
         return results[0] if not extra_reads else results
     finally:
         try:
