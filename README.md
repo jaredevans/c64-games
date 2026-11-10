@@ -1,188 +1,21 @@
-# C64 Horizontal Shoot-'Em-Up
+# Commodore 64 Games
 
-<img src="aretype/aretype-c64-preview.png" alt="OpeningTitle" width="600" height="400" />
-
-An R-Type-style, horizontally-scrolling shoot-'em-up for the **Commodore 64**, written from
-scratch in 6502 assembly. The whole game is a single source file (`scroll.asm`), assembled with
+Games for the **Commodore 64**, written from scratch in 6502 assembly, built with
 [ACME](https://sourceforge.net/projects/acme-crossass/) and tested in the
-[VICE](https://vice-emu.sourceforge.io/) `x64sc` emulator (PAL).
+[VICE](https://vice-emu.sourceforge.io/) `x64sc` emulator (PAL). Each game lives in its own
+directory with its source, assets, and README.
 
-## Gameplay
+## Games
 
-Pilot a ship through a continuously scrolling starfield, dodging and destroying waves of enemies.
-Tap to fire, or hold to charge a piercing **beam** for the tougher moments. Rack up points, survive
-enemy fire, and every five kills a multi-part **boss** sweeps in — beat it for a score bonus and the
-waves resume. Lose your last ship and it's **GAME OVER** — the starfield freezes under a **top-5
-score table** with your new entry flashing, then it's back to the animated title screen, ready for
-another run.
+### [ARE-TYPE](aretype/) — horizontal shoot-'em-up
 
-### Demo Video
+<a href="aretype/"><img src="aretype/aretype-c64-preview.png" alt="ARE-TYPE title screen" width="600" height="400" /></a>
 
-![Gameplay](shmup.gif)
+An R-Type-style, horizontally-scrolling shoot-'em-up with a multiplexed sprite engine, a boot
+splash in multicolor bitmap mode, and a SID soundtrack remixed from the medieval *Dies irae*
+chant. See [`aretype/README.md`](aretype/README.md) for gameplay, build instructions, and
+technical deep-dives.
 
-### Controls
+## License
 
-| Key | Action |
-|-----|--------|
-| `Space` (title screen) | Start the game |
-| `I` | Move up |
-| `J` | Move left |
-| `K` | Move down |
-| `L` | Move right |
-| `Space` (tap) | Fire a normal shot |
-| `Space` (hold, then release) | Charge and unleash the beam |
-
-## Features
-
-- **Boot splash screen** — the ARE-TYPE key art (`aretype/aretype.png`) converted to a full-screen
-  multicolor bitmap (Koala format, 160×200 in VIC bank 1), displayed for 3 seconds at power-on
-  before the title screen. See [`aretype/aretype-c64-preview.png`](aretype/aretype-c64-preview.png) for a pixel-exact
-  render of what the VIC shows.
-- **Animated title screen** — "ARE-TYPE" spelled out in all 8 hardware sprites, one letter per
-  sprite. The letters glide in one at a time (last letter first), then ride a sine-wave bob with a
-  rolling rainbow color cycle and a beat pulse, over the still-scrolling starfield. A blinking
-  `PRESS FIRE TO START` prompt sits in the status bar.
-- **Game states & attract loop** — a TITLE → PLAY → GAME OVER state machine: lose the last ship and
-  a flashing `GAME OVER` (plus a red border blip) shows before the game returns to the title, ready
-  to start again.
-- **High-score table** — the world freezes on GAME OVER and a `TOP SCORES` table of the session's
-  five best runs appears over the halted starfield, with the score you just earned flashing. Held
-  ~5 seconds, or press Space to skip back to the title. Scores live in RAM: they persist across
-  runs and reset when the machine powers off (this is a C64 — no save files!).
-- **Hardware smooth scrolling** — fine scroll via `$D016` plus a double-buffered coarse-flip, so the
-  playfield scrolls pixel-by-pixel with no tearing.
-- **Player ship** — keyboard-controlled (IJKL); tap Space for a single shot (up to 6 bullets on
-  screen), with no autofire.
-- **Charge beam** — an R-Type-style wave cannon: hold Space to charge (the ship's hull pulses, then
-  glows steady when ready) and release to fire a double-width, **piercing** beam that punches through
-  a whole row of enemies. The beam is drawn wide via VIC sprite X-expand (`$D01D`) carried through the
-  multiplexer, and drains the boss at most 1 HP per frame (no instakill).
-- **Sprite multiplexer** — a sorted, raster-driven multiplexer drives 15 virtual sprites from the
-  C64's 8 hardware sprites (player, player bullets, enemies, enemy bullets).
-- **Enemies** — timed waves with multiple movement patterns (straight, sine, zig-zag) that shoot back.
-- **Collisions, lives & respawn** — bullet-vs-enemy and enemy-vs-player hit detection, a life system
-  with an invulnerable respawn, and a game-over reset.
-- **HUD / score panel** — a static two-row status bar (`Score:` and `Ships left:`) held above the
-  scrolling playfield by a **raster split**, with a BCD score and custom digit + letter glyphs.
-- **Boss** — a five-piece cluster that enters, bobs, fires bullet volleys, has shared HP, flashes when
-  hit, and explodes with a bonus on defeat.
-- **Background music** — a driving, three-voice *Dies irae* battle remix plays continuously across
-  the title, gameplay, and game-over screens: pulse-wave lead and bass plus a noise/triangle drum
-  kit (kick, snare, hi-hats), looping every ~25 seconds.
-- **SID sound effects that share the chip with the music** — fire, explosion, player-hit, and
-  boss-alert effects (frequency sweeps + auto gate-off) all play on voice 3, briefly *stealing* the
-  drum voice and handing it back on the beat, so the melody and bassline never stutter.
-
-## Building & running
-
-You need [ACME](https://sourceforge.net/projects/acme-crossass/) and
-[VICE](https://vice-emu.sourceforge.io/).
-
-```sh
-cd aretype
-
-# assemble (Commodore PRG output)
-acme -f cbm -o scroll.prg scroll.asm
-
-# run in VICE (PAL)
-x64sc scroll.prg
-```
-
-The PRG includes a BASIC stub, so it auto-runs on load (or `SYS 2064`).
-
-**Reading the code:** [`aretype/scroll-commented.asm`](aretype/scroll-commented.asm) is a line-by-line annotated copy
-of `scroll.asm` — identical code (it assembles to the same binary), with every line explained.
-
-## Technical notes
-
-- **Target:** Commodore 64, PAL. Multicolor character mode for the scrolling playfield.
-- **Display:** double-buffered screens with `$D018` flipping; color RAM shifted in step with the scroll.
-- **Timing:** a stable raster-IRQ chain (`scroll_irq` → `split_irq` → multiplexer → back) does the
-  per-frame scroll work, the HUD raster split, and the sprite multiplexing.
-- **Memory:** everything lives in VIC bank 0 (`$0000–$3FFF`); buffers, charset, sprites, and the
-  runtime data block are hand-placed to avoid the char-ROM shadow and code/buffer overlap.
-- **Audio:** a frame-rate music player owns SID voices V1 (lead) and V2 (bass); V3 is shared —
-  drums normally, stolen by the SFX sweep engine while an effect plays (the drum stream keeps
-  advancing silently so the beat never drifts). Music code + note data live at `$4000`, outside
-  the VIC bank.
-
-Built incrementally in stages (scroll → player → multiplexer → enemies → collisions → HUD → boss →
-audio → charge beam → title screen & game states → high-score table → background music).
-
-## Deep dive: keeping same-scanline sprites visible
-
-The C64 has only **8 hardware sprites**, and at most **8 can appear on any single scanline** — that's
-a hard VIC-II limit. A horizontal shooter stresses this badly: when you hold position and fire, every
-bullet spawns at the same ship Y and travels along one scanline, so a stream of bullets (plus the ship
-and any enemy fire crossing that line) easily piles up on a single row. Early on, bullets would simply
-**vanish** under fire. Fixing it turned out to be more subtle than the 8-sprite limit suggests.
-
-The VIC-II only has **8 hardware sprites** total — but games routinely show far more than that on
-screen by *reusing* them down the frame, a trick called **multiplexing**. This game has **15 "virtual"
-sprites** (the player, its bullets, enemies, and enemy bullets) driven by those 8 hardware ones; that
-is exactly what `sort_sprites` / `build_schedule` / `mux_irq` do — sort the virtual sprites top-to-bottom,
-then hand each batch to a hardware sprite as the raster passes it. A hardware sprite drawn near the top
-of the screen is free again lower down, so it can be reprogrammed to a different object further down.
-(Sprite 0 stays dedicated to the player, so the multiplexer juggles the other **7** hardware sprites
-across everything else — which is why the limits below are about 7, not 8.) The catch: this only works
-while no more than 8 overlap any *single* scanline, and you have time to reprogram them.
-
-A raster-driven multiplexer reuses the 8 hardware sprites down the screen: an interrupt fires a few
-lines *above* each sprite's Y position and reprograms a hardware sprite (its X/Y/colour) just in time
-to be drawn. The number of lines of warning is `MUX_LEAD`. The bug we fixed lived right at that
-8-per-scanline ceiling: a bullet stream piled too many sprites onto one line, and the multiplexer
-didn't have enough lead time to reprogram them all before the raster swept past.
-
-**The real bug was lead time, not the 8-sprite limit.** A sprite only turns on if its Y register is
-written *before* the raster reaches that line — it's a hard deadline. Reprogramming one sprite in the
-interrupt costs ~100+ cycles — roughly a couple of scanlines once interrupt overhead is counted — so
-setting up a full band of ~7 same-line sprites needs a dozen-plus scanlines of lead (hence
-`MUX_LEAD = 16`). With the original `MUX_LEAD = 3`, there were only 3 lines of warning, so the first
-2–3 sprites made the deadline and the rest missed their turn-on line and never appeared. A forced-scene
-test of 7 sprites on one line confirmed it: **3 visible at `MUX_LEAD=3`, 5 at 9, all 7 at 16.** The fix
-is simply enough lead time to program the whole band before the raster arrives.
-
-Four changes work together:
-
-1. **`MUX_LEAD = 16`** *(the main fix)* — fire the interrupt far enough ahead to program a dense band
-   of same-line sprites before the raster catches up.
-2. **Beam clamp** — with a large lead, the interrupt for a sprite near the top of the playfield
-   would want to fire *above* the HUD raster split — a line the raster has already passed, which
-   would hang the chain for a whole frame. The first multiplexer interrupt is clamped to fire just
-   ahead of wherever the beam actually is (`max(spriteY − MUX_LEAD, raster + 2)`).
-3. **Capacity guard** — a hardware sprite is reused 7 slots later in the schedule; if that reuse would
-   land on a sprite still being drawn, the surplus sprite is **cleanly dropped** rather than half-drawn,
-   so a band that genuinely exceeds 7 degrades gracefully instead of corrupting.
-4. **Per-frame fairness rotation** — when more than 7 sprites do share a band, the schedule order is
-   rotated by one each frame so a *different* sprite is the one dropped. The overflow then blinks
-   faintly across all of them instead of one sprite staying permanently invisible.
-
-The first point does the heavy lifting; the others make the edge cases (top of screen, true overflow)
-behave instead of breaking. Net result: bullet streams and crossfire stay on screen during heavy
-combat, with at worst a gentle flicker only when you exceed what the hardware can physically show on
-one line.
-
-**Sequel: the clamp that stalled the chain.** The original version of point 2 clamped the first
-multiplexer interrupt to a *constant* line just below the split — but by the time the split handler
-wrote the raster register, the beam was already a couple of lines past that constant. The VIC-II only
-compares its raster latch at the start of each line, so an interrupt armed *at or behind* the beam
-never fires that frame: the whole sprite chain silently stalled, every multiplexed sprite stayed
-parked off-screen, and the end-of-frame interrupt that ticks game logic was skipped too. Fighting
-near the top of the playfield triggered this on every other frame — measured in the emulator as
-**25 fps, exactly half of PAL's 50**, with all bullets and enemies blinking. The same off-by-one hid
-in the multiplexer's own chaining check, which treated "next interrupt line **equals** the current
-line" as safely armed when it too can never fire. The rule both fixes enforce: **never arm the raster
-register with a line the beam has already reached** — clamp against the live raster position and
-treat an equal line as "program it now."
-
-## Bonus: Dies Irae on the SID
-
-This repo also includes [`aretype/dies-irae.asm`](aretype/dies-irae.asm) — the complete medieval *Dies irae*
-plainchant rendered on the C64's SID chip, transcribed note-for-note from the manuscript and
-arranged in three voices. See [`aretype/DIES-IRAE.md`](aretype/DIES-IRAE.md) for the full write-up (the chant,
-the transcription process, the SID rendering, and how it was kept faithful), or just listen to
-[`aretype/dies-irae.wav`](aretype/dies-irae.wav).
-
-The game's in-game soundtrack is its battle-remix cousin: [`aretype/musical_score.asm`](aretype/musical_score.asm)
-recasts the chant as driving D-minor game music (energised lead, galloping bassline, drum backbeat)
-— hear it standalone in [`aretype/musical_score.wav`](aretype/musical_score.wav), or just play the game.
+See [LICENSE](LICENSE).
