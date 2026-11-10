@@ -8,6 +8,13 @@
 ; only span 0..7 around the rest value 4, so each glide does one coarse step where the offset wraps
 ; (p=4 walking up/left, p=5 walking down/right): show the back buffer, which was built for the
 ; camera one cell over during p=1..3, and copy its colours into colour RAM.
+;
+; The camera follows the leader (leader on view cell LEADER_COL, LEADER_ROW) but is clamped to
+; [0, MAP_W-VIEW_COLS] x [0, MAP_H-MAP_ROWS]. When a step would not move the clamped camera, the
+; leader sprite glides 8 px instead and the map stays at rest.
+
+CAM_MAX_X = MAP_W - VIEW_COLS
+CAM_MAX_Y = MAP_H - MAP_ROWS
 
 GLIDE_FRAMES = 8
 
@@ -22,6 +29,15 @@ walk_init
         sta steps_done
         sta steps_done+1
         sta bumps
+        sta glide_spr
+        sta spr_off_x
+        sta spr_off_y
+        lda #<LEADER_SX
+        sta spr_x
+        lda #>LEADER_SX
+        sta spr_x+1
+        lda #LEADER_SY
+        sta spr_y
         rts
 
 ; walk_update: once per frame, after input_read
@@ -54,14 +70,34 @@ walk_update
         sta leader_x
         lda zp_row
         sta leader_y
-        lda cam_x
-        clc
-        adc dir_dx,x
-        sta bcam_x
-        lda cam_y
-        clc
-        adc dir_dy,x
-        sta bcam_y
+        ; new camera = clamp(leader - (LEADER_COL, LEADER_ROW))
+        lda leader_x
+        sec
+        sbc #LEADER_COL
+        bcs +
+        lda #0
++       cmp #CAM_MAX_X+1
+        bcc +
+        lda #CAM_MAX_X
++       sta bcam_x
+        lda leader_y
+        sec
+        sbc #LEADER_ROW
+        bcs +
+        lda #0
++       cmp #CAM_MAX_Y+1
+        bcc +
+        lda #CAM_MAX_Y
++       sta bcam_y
+        ldy #0                  ; glide_spr = camera unchanged
+        lda bcam_x
+        cmp cam_x
+        bne +
+        lda bcam_y
+        cmp cam_y
+        bne +
+        iny
++       sty glide_spr
         lda #0
         sta glide_p
         inc steps_done
@@ -69,7 +105,11 @@ walk_update
         inc steps_done+1
 
 .glide  inc glide_p
-        lda glide_dir           ; fine offsets for this pixel
+        lda glide_spr
+        beq .scroll
+        jsr sprite_step         ; camera clamped: move the sprite 1 px, map stays at rest
+        jmp .chk
+.scroll lda glide_dir           ; fine offsets for this pixel
         asl
         asl
         asl
@@ -94,7 +134,52 @@ walk_update
         bne +
         lda #DIR_NONE
         sta glide_dir
+        lda leader_x            ; step done: record the leader's offset from the view centre
+        sec
+        sbc cam_x
+        sec
+        sbc #LEADER_COL
+        sta spr_off_x
+        lda leader_y
+        sec
+        sbc cam_y
+        sec
+        sbc #LEADER_ROW
+        sta spr_off_y
 +       rts
+
+; sprite_step: move the leader sprite 1 px in glide_dir
+sprite_step
+        ldx glide_dir
+        lda spr_y
+        clc
+        adc dir_dy,x
+        sta spr_y
+        lda dir_dx,x
+        bmi .sl
+        clc
+        adc spr_x
+        sta spr_x
+        bcc +
+        inc spr_x+1
++       rts
+.sl     lda spr_x               ; dx = -1
+        bne +
+        dec spr_x+1
++       dec spr_x
+        rts
+
+; sprite_place: write the leader sprite position to the VIC (once per frame, after walk_update)
+sprite_place
+        lda spr_x
+        sta VIC_SPR0X
+        lda spr_y
+        sta VIC_SPR0Y
+        lda VIC_SPRMSB
+        and #%11111110
+        ora spr_x+1
+        sta VIC_SPRMSB
+        rts
 
 ; build_back_third: view rows (p-1)*6 .. p*6-1 of camera (bcam_x, bcam_y) into the hidden screen,
 ; colours into COLBUF

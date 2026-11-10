@@ -92,6 +92,11 @@ view_row    = $25       ; first view row to build
 view_end    = $26       ; one past the last view row
 script_ptr  = $27       ; 2 bytes (AUTOWALK)
 script_left = $29       ; frames left in the current script entry
+glide_spr   = $2a       ; 1 = this glide moves the sprite (camera clamped), 0 = scrolls the map
+spr_x       = $2b       ; 2 bytes: leader sprite X (VIC coordinates)
+spr_y       = $2d       ; leader sprite Y
+spr_off_x   = $2e       ; leader's cell offset from the view centre (signed), updated per step
+spr_off_y   = $2f
 
 ; ---- directions ----
 DIR_UP    = 0

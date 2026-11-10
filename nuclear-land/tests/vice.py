@@ -17,7 +17,8 @@ BUILD = NL / 'build'
 X64SC = '/Applications/vice-arm64-gtk3-3.10/bin/x64sc'
 CYCLES_PER_FRAME = 19656
 # deterministic pixels: pepto palette, no CRT filter (nearest-colour matching in c64render)
-VIDEO = ['-VICIIextpal', '-VICIIpalette', 'pepto-pal.vpl', '-VICIIfilter', '0']
+# -default ignores the user's vicerc (theirs is NTSC); -pal = the spec's machine
+VIDEO = ['-default', '-pal', '-VICIIextpal', '-VICIIpalette', 'pepto-pal.vpl', '-VICIIfilter', '0']
 
 sys.path.insert(0, str(NL / 'tools'))
 
@@ -58,8 +59,9 @@ def screenshot(prg, cycles):
     """Run `prg` headless for `cycles` CPU cycles and return the exit screenshot."""
     with tempfile.TemporaryDirectory() as td:
         png = os.path.join(td, 'shot.png')
-        subprocess.run([X64SC, '-warp', '-limitcycles', str(int(cycles)), '-autostartprgmode', '1',
-                        '-sounddev', 'dummy', *VIDEO, '-exitscreenshot', png, '-autostart', str(prg)],
+        # VIDEO (with -default) must come first: -default resets every option given before it
+        subprocess.run([X64SC, *VIDEO, '-warp', '-limitcycles', str(int(cycles)), '-autostartprgmode', '1',
+                        '-sounddev', 'dummy', '-exitscreenshot', png, '-autostart', str(prg)],
                        capture_output=True, timeout=600)
         if not os.path.exists(png):
             raise RuntimeError('VICE produced no screenshot')
@@ -112,7 +114,7 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=())
 
     Returns bytes for (addr, length); if `extra_reads` is a list of (wait_s, addr, length) the
     function returns a list of byte strings, one per read, taken at those later times."""
-    args = [X64SC, '-autostartprgmode', '1', '-sounddev', 'dummy', '-binarymonitor',
+    args = [X64SC, *VIDEO, '-autostartprgmode', '1', '-sounddev', 'dummy', '-binarymonitor',
             '-binarymonitoraddress', f'ip4://127.0.0.1:{port}', '-autostart', str(prg)]
     if warp:
         args.insert(1, '-warp')

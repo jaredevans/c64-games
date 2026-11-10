@@ -60,6 +60,7 @@ start
 }
 !ifdef AUTOWALK {
         jsr script_init
+        jsr tod_start
 }
         jsr irq_init
 main_loop
@@ -69,6 +70,10 @@ main_loop
         sta frame_ready
         jsr input_read
         jsr walk_update
+        jsr sprite_place
+!ifdef AUTOWALK {
+        jsr tod_snapshot
+}
 !ifdef FORCE_FINE {             ; test mode: sweep the map band through every fine position
         lda frame_count
         and #7

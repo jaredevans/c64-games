@@ -198,6 +198,11 @@ script_step
         ldy #0
         lda (script_ptr),y
         beq .ended
+        cmp #$ff                ; $ff = restart the script from the top
+        bne +
+        jsr script_init
+        jmp script_step
++
         sta script_left
         iny
         lda (script_ptr),y
@@ -242,5 +247,44 @@ walk_script
 !if AUTOWALK = 2 {              ; tests/test_step_rate.py
         +hold 96, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
 }
+!if AUTOWALK = 3 {              ; tests/test_edge_clamp.py: J to the west wall, then bump it
+        +hold 240, K_NONE, K_NONE, K4_J, K_NONE, K_NONE
+        +idle 1
+}
+!if AUTOWALK = 4 {              ; tests/test_long_run_fps.py: a 21x11 loop forever
+        +hold 160, K_NONE, K_NONE, K_NONE, K5_L, K_NONE                ; right 20
+        +hold 80, K_NONE, K_NONE, K4_K, K_NONE, K_NONE                 ; down 10
+        +hold 160, K_NONE, K_NONE, K4_J, K_NONE, K_NONE                ; left 20
+        +hold 80, K_NONE, K_NONE, K4_I, K_NONE, K_NONE                 ; up 10
+        !byte $ff
+}
         !byte 0
+
+; tod_start: emulated-time reference for tests. CIA2 timer A free-runs on the CPU clock
+; (latch $ffff = 65536 cycles per underflow); timer B counts timer A underflows down from $ffff.
+; (No interrupts: CIA2 NMIs are disabled in irq_init.)
+tod_start
+        lda #$ff
+        sta $dd04
+        sta $dd05
+        sta $dd06
+        sta $dd07
+        lda #%00010001          ; TA: force load, start, continuous, count phi2
+        sta $dd0e
+        lda #%01010001          ; TB: force load, start, count TA underflows
+        sta $dd0f
+        rts
+
+; tod_snapshot: frame_count + timer B (cycles/65536, counting down), taken together each frame
+tod_snapshot
+        lda frame_count
+        sta tod_snap
+        lda frame_count+1
+        sta tod_snap+1
+        lda $dd06
+        sta tod_snap+2
+        lda $dd07
+        sta tod_snap+3
+        rts
+tod_snap !fill 4, 0
 }
