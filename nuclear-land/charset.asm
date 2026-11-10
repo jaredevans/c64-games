@@ -17,7 +17,7 @@ charset_init
         sta CHARSET+$100,x
         inx
         bne -
-        lda #$37
+        lda #$36                ; back to BASIC out, KERNAL + I/O in
         sta $01
         ; tiles: TILE_FIRST*8 .. (TILE_LAST+1)*8
         lda #<tiles_src

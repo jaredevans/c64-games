@@ -116,7 +116,10 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=())
             '-binarymonitoraddress', f'ip4://127.0.0.1:{port}', '-autostart', str(prg)]
     if warp:
         args.insert(1, '-warp')
-    proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    _port_free_or_die(port)
+    # x64sc in bin/ is a wrapper script: run it in its own process group so kill reaps the emulator
+    proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                            start_new_session=True)
     try:
         s = None
         for _ in range(100):
@@ -157,8 +160,25 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=())
             resume()
         return results[0] if not extra_reads else results
     finally:
-        proc.kill()
+        try:
+            os.killpg(proc.pid, 9)
+        except ProcessLookupError:
+            pass
         proc.wait()
+        for _ in range(50):             # wait until the emulator really released the port
+            try:
+                socket.create_connection(('127.0.0.1', port), timeout=0.2).close()
+                time.sleep(0.1)
+            except OSError:
+                break
+
+
+def _port_free_or_die(port):
+    try:
+        socket.create_connection(('127.0.0.1', port), timeout=0.2).close()
+    except OSError:
+        return
+    raise RuntimeError(f'port {port} already in use - a stray VICE is running (pkill -f Resources/bin/x64sc)')
 
 
 # ---- comparison helpers shared by tests ----

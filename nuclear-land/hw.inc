@@ -70,3 +70,34 @@ fine_y      = $0d       ; map-band pixel offset 0..7 (see irq.asm)
 vis_buf     = $0e       ; 0 = SCREEN_A shown, 1 = SCREEN_B
 frame_ready = $0f       ; set by IRQ_HUD each frame
 frame_count = $10       ; 2 bytes
+kb_row0     = $12       ; raw keyboard matrix rows (active low): CRSR keys
+kb_row1     = $13       ; LSHIFT
+kb_row4     = $14       ; I J K
+kb_row5     = $15       ; L
+kb_row6     = $16       ; RSHIFT
+cur_dir     = $17       ; decoded direction this frame (DIR_* or DIR_NONE)
+leader_x    = $18       ; leader's map cell
+leader_y    = $19
+glide_dir   = $1a       ; DIR_* while gliding, DIR_NONE when idle
+glide_p     = $1b       ; pixel of the current glide, 1..GLIDE_FRAMES
+bcam_x      = $1c       ; camera the back buffer is being built for
+bcam_y      = $1d
+steps_done  = $1e       ; 2 bytes (tests)
+bumps       = $20       ; blocked step attempts (tests)
+view_page   = $21       ; screen page (hi byte) view_build writes to
+view_colhi  = $22       ; colour destination hi byte: >COLRAM or >COLBUF
+view_cx     = $23       ; camera view_build reads from
+view_cy     = $24
+view_row    = $25       ; first view row to build
+view_end    = $26       ; one past the last view row
+script_ptr  = $27       ; 2 bytes (AUTOWALK)
+script_left = $29       ; frames left in the current script entry
+
+; ---- directions ----
+DIR_UP    = 0
+DIR_DOWN  = 1
+DIR_LEFT  = 2
+DIR_RIGHT = 3
+DIR_NONE  = $ff
+
+COLBUF      = $b800     ; 1 KB colour staging buffer, same layout as colour RAM

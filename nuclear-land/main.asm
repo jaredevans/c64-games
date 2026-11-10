@@ -16,6 +16,8 @@ basic_end
 * = $080d
 start
         sei
+        lda #$36                ; BASIC ROM out (COLBUF at $B800 must read back as RAM), KERNAL+I/O in
+        sta $01
         lda #COL_DGREY
         sta VIC_BORDER
         lda #COL_BLACK
@@ -52,12 +54,21 @@ start
         sta frame_ready
         sta frame_count
         sta frame_count+1
+        jsr walk_init
+!ifdef KEYTEST {
+        jsr keytest_run
+}
+!ifdef AUTOWALK {
+        jsr script_init
+}
         jsr irq_init
 main_loop
         lda frame_ready
         beq main_loop
         lda #0
         sta frame_ready
+        jsr input_read
+        jsr walk_update
 !ifdef FORCE_FINE {             ; test mode: sweep the map band through every fine position
         lda frame_count
         and #7
@@ -128,10 +139,12 @@ leader_shape                    ; 8px figure in the left column, rows 3-15
         !byte 0
 
 !source "irq.asm"
+!source "input.asm"
+!source "walk.asm"
 !source "charset.asm"
 !source "view.asm"
 !source "hud.asm"
 
-!if * > VIC_BANK {
-        !error "code/data overran $C000 (VIC bank 3)"
+!if * > COLBUF {
+        !error "code/data overran COLBUF ($B800)"
 }
