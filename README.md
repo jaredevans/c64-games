@@ -1,6 +1,6 @@
 # C64 Horizontal Shoot-'Em-Up
 
-<img src="aretype-c64-preview.png" alt="OpeningTitle" width="600" height="400" />
+<img src="aretype/aretype-c64-preview.png" alt="OpeningTitle" width="600" height="400" />
 
 An R-Type-style, horizontally-scrolling shoot-'em-up for the **Commodore 64**, written from
 scratch in 6502 assembly. The whole game is a single source file (`scroll.asm`), assembled with
@@ -34,9 +34,9 @@ another run.
 
 ## Features
 
-- **Boot splash screen** — the ARE-TYPE key art (`aretype.png`) converted to a full-screen
+- **Boot splash screen** — the ARE-TYPE key art (`aretype/aretype.png`) converted to a full-screen
   multicolor bitmap (Koala format, 160×200 in VIC bank 1), displayed for 3 seconds at power-on
-  before the title screen. See [`aretype-c64-preview.png`](aretype-c64-preview.png) for a pixel-exact
+  before the title screen. See [`aretype/aretype-c64-preview.png`](aretype/aretype-c64-preview.png) for a pixel-exact
   render of what the VIC shows.
 - **Animated title screen** — "ARE-TYPE" spelled out in all 8 hardware sprites, one letter per
   sprite. The letters glide in one at a time (last letter first), then ride a sine-wave bob with a
@@ -79,6 +79,8 @@ You need [ACME](https://sourceforge.net/projects/acme-crossass/) and
 [VICE](https://vice-emu.sourceforge.io/).
 
 ```sh
+cd aretype
+
 # assemble (Commodore PRG output)
 acme -f cbm -o scroll.prg scroll.asm
 
@@ -88,7 +90,7 @@ x64sc scroll.prg
 
 The PRG includes a BASIC stub, so it auto-runs on load (or `SYS 2064`).
 
-**Reading the code:** [`scroll-commented.asm`](scroll-commented.asm) is a line-by-line annotated copy
+**Reading the code:** [`aretype/scroll-commented.asm`](aretype/scroll-commented.asm) is a line-by-line annotated copy
 of `scroll.asm` — identical code (it assembles to the same binary), with every line explained.
 
 ## Technical notes
@@ -175,12 +177,12 @@ treat an equal line as "program it now."
 
 ## Bonus: Dies Irae on the SID
 
-This repo also includes [`dies-irae.asm`](dies-irae.asm) — the complete medieval *Dies irae*
+This repo also includes [`aretype/dies-irae.asm`](aretype/dies-irae.asm) — the complete medieval *Dies irae*
 plainchant rendered on the C64's SID chip, transcribed note-for-note from the manuscript and
-arranged in three voices. See [`DIES-IRAE.md`](DIES-IRAE.md) for the full write-up (the chant,
+arranged in three voices. See [`aretype/DIES-IRAE.md`](aretype/DIES-IRAE.md) for the full write-up (the chant,
 the transcription process, the SID rendering, and how it was kept faithful), or just listen to
-[`dies-irae.wav`](dies-irae.wav).
+[`aretype/dies-irae.wav`](aretype/dies-irae.wav).
 
-The game's in-game soundtrack is its battle-remix cousin: [`musical_score.asm`](musical_score.asm)
+The game's in-game soundtrack is its battle-remix cousin: [`aretype/musical_score.asm`](aretype/musical_score.asm)
 recasts the chant as driving D-minor game music (energised lead, galloping bassline, drum backbeat)
-— hear it standalone in [`musical_score.wav`](musical_score.wav), or just play the game.
+— hear it standalone in [`aretype/musical_score.wav`](aretype/musical_score.wav), or just play the game.
