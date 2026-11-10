@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vice  # noqa: E402
 from c64render import load_assets, render_view  # noqa: E402
 
-SPRITE_BOX = (19 * 8, 11 * 8 - 8, 24, 21)   # leader sprite over band cell (19,9) = screen cell (19,11)
+SPRITE_BOX = (19 * 8, 11 * 8 - 8, 32, 24)   # leader sprite over band cell (19,9) = screen cell (19,11)
 
 
 def main():
@@ -15,7 +15,8 @@ def main():
     shot = vice.screenshot(prg, 4_000_000)
     mp, glyph, colors = load_assets()
     exp = render_view(mp, glyph, colors, lab['START_CX'], lab['START_CY'])
-    mis = vice.band_mismatch(shot, exp, ignore_box=SPRITE_BOX)
+    dx, dy = vice.rest_shift(lab)
+    mis = vice.band_mismatch(shot, exp, ignore_box=SPRITE_BOX, dx=dx, dy=dy)
     vice.check(mis <= 0.01, f'map band matches start view (mismatch {mis:.3%})')
     vice.check(vice.has_ink(shot, (0, 1)), 'status row 0 has text')
     vice.check(vice.has_ink(shot, (21, 25)), 'HUD rows 21-24 have text')

@@ -38,8 +38,7 @@ ROW_STATUS  = 0
 ROW_SPACER1 = 1
 ROW_MAP     = 2         ; first map row
 MAP_ROWS    = 18        ; rows 2-19
-ROW_SPACER2 = 20
-ROW_HUD     = 21        ; rows 21-24
+ROW_HUD     = 20        ; screen rows 20-23, displayed on raster 219-250 (after the FLD gap)
 VIEW_COLS   = 40
 
 ; ---- map ----
@@ -66,3 +65,8 @@ zp_dst      = $06       ; 2 bytes
 zp_col      = $08       ; 2 bytes
 zp_tmp      = $0a
 zp_row      = $0b
+fine_x      = $0c       ; map-band XSCROLL 0..7
+fine_y      = $0d       ; map-band pixel offset 0..7 (see irq.asm)
+vis_buf     = $0e       ; 0 = SCREEN_A shown, 1 = SCREEN_B
+frame_ready = $0f       ; set by IRQ_HUD each frame
+frame_count = $10       ; 2 bytes

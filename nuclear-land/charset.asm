@@ -3,6 +3,11 @@
 ; charset_init: copy ROM uppercase font codes 0..TILE_FIRST-1 into CHARSET, then the tiles.
 ; Expects interrupts disabled.
 charset_init
+        lda #0                  ; clear the whole 2 KB charset (unused codes stay blank)
+        tax
+-       !for p, 0, 7 { sta CHARSET + p*$100,x }
+        inx
+        bne -
         lda #$33                ; char ROM visible at $d000, I/O off
         sta $01
         ldx #0

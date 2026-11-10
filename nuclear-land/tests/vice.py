@@ -162,11 +162,13 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=())
 
 
 # ---- comparison helpers shared by tests ----
-def band_mismatch(shot, expected_idx, cam_rows=(2, 20), cols=(1, 39), ignore_box=None):
+def band_mismatch(shot, expected_idx, cam_rows=(2, 20), cols=(1, 39), ignore_box=None, dx=0, dy=0):
     """Fraction of pixels in the map band whose nearest-palette index differs from expected.
 
     expected_idx: 2-D list [y][x] of colour indices for the 40x18 view (from c64render).
-    ignore_box: (x, y, w, h) in display-window pixels to skip (the sprite)."""
+    ignore_box: (x, y, w, h) in display-window pixels to skip (the sprite).
+    dx, dy: the map band's pixel shift on screen (fine_x, fine_y); the expected image is
+    sampled at (sx-dx, sy-dy) and pixels shifted in from outside the view are skipped."""
     from c64render import nearest_index, set_palette
     set_palette(palette())
     x0, y0 = screen_box(shot)
@@ -178,10 +180,18 @@ def band_mismatch(shot, expected_idx, cam_rows=(2, 20), cols=(1, 39), ignore_box
             if ignore_box and ignore_box[0] <= sx < ignore_box[0] + ignore_box[2] \
                     and ignore_box[1] <= sy < ignore_box[1] + ignore_box[3]:
                 continue
+            ex, ey = sx - dx, vy - dy
+            if not (0 <= ex < len(expected_idx[0]) and 0 <= ey < len(expected_idx)):
+                continue
             tot += 1
-            if nearest_index(px[x0 + sx, y0 + sy]) != expected_idx[vy][sx]:
+            if nearest_index(px[x0 + sx, y0 + sy]) != expected_idx[ey][ex]:
                 bad += 1
     return bad / max(tot, 1)
+
+
+def rest_shift(lab):
+    """(dx, dy) of the map band at rest: XSCROLL px right, and map row 2 starts on raster 67+fine_y."""
+    return lab['FINE_REST_X'], lab['FINE_REST_Y']
 
 
 def band_pixels(shot, rows):

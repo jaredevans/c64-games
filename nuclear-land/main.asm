@@ -43,7 +43,32 @@ start
         jsr view_draw_full
         jsr hud_draw
         jsr sprite_init
+        lda #FINE_REST_X
+        sta fine_x
+        lda #FINE_REST_Y
+        sta fine_y
+        lda #0
+        sta vis_buf
+        sta frame_ready
+        sta frame_count
+        sta frame_count+1
+        jsr irq_init
 main_loop
+        lda frame_ready
+        beq main_loop
+        lda #0
+        sta frame_ready
+!ifdef FORCE_FINE {             ; test mode: sweep the map band through every fine position
+        lda frame_count
+        and #7
+        sta fine_x
+        lda frame_count
+        lsr
+        lsr
+        lsr
+        and #7
+        sta fine_y
+}
         jmp main_loop
 
 ; clear_colram: colour RAM -> black
@@ -59,8 +84,8 @@ clear_colram
         rts
 
 ; sprite_init: leader figure in sprite 0 over band cell (LEADER_COL, LEADER_ROW)
-LEADER_SX = 24 + LEADER_COL*8
-LEADER_SY = 50 + (ROW_MAP + LEADER_ROW)*8 - 8
+LEADER_SX = 24 + LEADER_COL*8 + FINE_REST_X
+LEADER_SY = 50 + (ROW_MAP + LEADER_ROW)*8 - 8 + FINE_REST_Y
 sprite_init
         ldx #63
 -       lda leader_shape,x
@@ -102,6 +127,7 @@ leader_shape                    ; 8px figure in the left column, rows 3-15
         !fill 5*3, 0
         !byte 0
 
+!source "irq.asm"
 !source "charset.asm"
 !source "view.asm"
 !source "hud.asm"
