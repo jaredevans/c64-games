@@ -88,7 +88,11 @@ def palette():
 
 
 def screen_box(img):
-    """Top-left (x0, y0) of the 320x200 display window: first non-border pixel column/row."""
+    """Top-left (x0, y0) of the 320x200 display window. Default PAL x64sc screenshots are 384x272
+    with the window at (32, 35); otherwise fall back to the first non-border pixel (unreliable if
+    sprites are drawn in the border)."""
+    if img.size == (384, 272):
+        return 32, 35
     border = img.getpixel((0, 0))
     w, h = img.size
     px = img.load()
@@ -195,7 +199,8 @@ def _port_free_or_die(port):
 
 
 # ---- comparison helpers shared by tests ----
-def band_mismatch(shot, expected_idx, cam_rows=(2, 20), cols=(1, 39), ignore_box=None, dx=0, dy=0):
+def band_mismatch(shot, expected_idx, cam_rows=(2, 20), cols=(1, 39), ignore_box=None, dx=0, dy=0,
+                  y_window=(23, 160)):
     """Fraction of pixels in the map band whose nearest-palette index differs from expected.
 
     expected_idx: 2-D list [y][x] of colour indices for the 40x18 view (from c64render).
@@ -209,6 +214,8 @@ def band_mismatch(shot, expected_idx, cam_rows=(2, 20), cols=(1, 39), ignore_box
     bad = tot = 0
     for vy in range((cam_rows[1] - cam_rows[0]) * 8):
         sy = cam_rows[0] * 8 + vy
+        if not (y_window[0] <= sy < y_window[1]):     # only the fixed visible map window
+            continue
         for sx in range(cols[0] * 8, cols[1] * 8):
             if ignore_box and ignore_box[0] <= sx < ignore_box[0] + ignore_box[2] \
                     and ignore_box[1] <= sy < ignore_box[1] + ignore_box[3]:

@@ -10,7 +10,12 @@ UP, DOWN, LEFT, RIGHT, NONE = 0, 1, 2, 3, 0xff
 CASES = [('none', NONE), ('CRSR-down', DOWN), ('LSHIFT+CRSR-down', UP), ('RSHIFT+CRSR-down', UP),
          ('CRSR-right', RIGHT), ('LSHIFT+CRSR-right', LEFT), ('I', UP), ('J', LEFT), ('K', DOWN),
          ('L', RIGHT), ('I+L', UP), ('K+J', DOWN), ('J+L', LEFT), ('CRSR-right+K', DOWN),
-         ('SHIFT alone', NONE)]
+         ('SHIFT alone', NONE),
+         # VICE host Down+Left and host Up+Right both give SHIFT+CRSR-down+CRSR-right: ambiguous,
+         # so keep the previous direction (any of the four could have been pressed), else none
+         ('ambiguous, prev none', NONE), ('ambiguous, prev DOWN', DOWN), ('ambiguous, prev LEFT', LEFT),
+         ('ambiguous, prev UP', UP), ('ambiguous, prev RIGHT', RIGHT), ('ambiguous LSHIFT, prev DOWN', DOWN),
+         ('CRSR-down+CRSR-right (no shift)', DOWN), ('K, prev UP (prev ignored)', DOWN)]
 
 
 def main():
@@ -18,7 +23,7 @@ def main():
     lab = vice.labels(prg)
     out = vice.memread(prg, lab['keytest_out'], len(CASES), wait_s=3.0)
     for (name, want), got in zip(CASES, out):
-        vice.check(got == want, f'{name:18s} -> {got:#04x} (want {want:#04x})')
+        vice.check(got == want, f'{name:32s} -> {got:#04x} (want {want:#04x})')
 
 
 if __name__ == '__main__':

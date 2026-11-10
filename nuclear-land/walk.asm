@@ -10,10 +10,11 @@
 ; camera one cell over during p=1..3, and copy its colours into colour RAM.
 ;
 ; The camera follows the leader (leader on view cell LEADER_COL, LEADER_ROW) but is clamped to
-; [0, MAP_W-VIEW_COLS] x [0, MAP_H-MAP_ROWS]. When a step would not move the clamped camera, the
+; [0, MAP_W-VIEW_COLS+1] x [0, MAP_H-MAP_ROWS]. When a step would not move the clamped camera, the
 ; leader sprite glides 8 px instead and the map stays at rest.
 
-CAM_MAX_X = MAP_W - VIEW_COLS
+CAM_MAX_X = MAP_W - VIEW_COLS + 1      ; view column 39 is always under the 38-col border, so the
+                                        ; map's last column must be allowed into view column 38
 CAM_MAX_Y = MAP_H - MAP_ROWS
 
 GLIDE_FRAMES = 8

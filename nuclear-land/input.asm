@@ -40,9 +40,13 @@ input_read
         sta cur_dir
         rts
 
-; decode_keys: kb_row0/1/4/5/6 -> A = DIR_* or DIR_NONE. Pure (reads only the kb_row* bytes).
+; decode_keys: kb_row0/1/4/5/6 + cur_dir (last frame's result) -> A = DIR_* or DIR_NONE.
+; Pure: reads only those bytes.
+; SHIFT + CRSR-down + CRSR-right is ambiguous: VICE produces it both for host Down+Left and for
+; host Up+Right. Then the cursor keys are ignored and, unless I/J/K/L say otherwise, the previous
+; direction is kept (DIR_NONE if there was none) - never a direction nobody pressed.
 decode_keys
-        ldx #0                  ; x = 1 if either shift is down
+        ldx #0                  ; x = 0 no shift, 1 shift, 2 ambiguous (cursor keys ignored)
         lda kb_row1
         and #%10000000
         beq .shift
@@ -50,6 +54,10 @@ decode_keys
         and #%00010000
         bne .noshift
 .shift  ldx #1
+        lda kb_row0
+        and #%10000100          ; both CRSR-down and CRSR-right held?
+        bne .noshift
+        ldx #2
 .noshift
         ; up: I, or SHIFT+CRSR-down
         lda kb_row4
@@ -88,7 +96,10 @@ decode_keys
         and #%00000100
         beq .right
 +       lda #DIR_NONE
-        rts
+        cpx #2
+        bne +
+        lda cur_dir             ; ambiguous: keep last frame's direction
++       rts
 .up     lda #DIR_UP
         rts
 .down   lda #DIR_DOWN
@@ -102,7 +113,8 @@ decode_keys
 ; Test support (assembled only with -DKEYTEST / -DAUTOWALK)
 
 ; raw key bytes (active low) for script entries: row0, row1, row4, row5, row6
-!macro keys .r0, .r1, .r4, .r5, .r6 { !byte .r0, .r1, .r4, .r5, .r6 }
+!macro keys .r0, .r1, .r4, .r5, .r6 { !byte .r0, .r1, .r4, .r5, .r6, DIR_NONE }
+!macro keysp .r0, .r1, .r4, .r5, .r6, .prev { !byte .r0, .r1, .r4, .r5, .r6, .prev }  ; with previous dir
 K_NONE   = $ff
 K0_CRSRD = $7f                  ; row 0 bit 7
 K0_CRSRR = $fb                  ; row 0 bit 2
@@ -116,7 +128,7 @@ K5_L     = $fb
 K6_RSH   = $ef
 
 !ifdef KEYTEST {
-KEYTEST_N = 15
+KEYTEST_N = 23
 ; keytest_run: decode every case in keytest_cases into keytest_out
 keytest_run
         lda #<keytest_cases
@@ -139,6 +151,9 @@ keytest_run
         iny
         lda (zp_src),y
         sta kb_row6
+        iny
+        lda (zp_src),y
+        sta cur_dir             ; previous frame's direction
         txa
         pha
         jsr decode_keys
@@ -149,7 +164,7 @@ keytest_run
         sta keytest_out,x
         lda zp_src
         clc
-        adc #5
+        adc #6
         sta zp_src
         bcc +
         inc zp_src+1
@@ -173,6 +188,15 @@ keytest_cases                   ; order matches tests/test_decode_keys.py
         +keys K_NONE,   K_NONE, K4_J,   K5_L,   K_NONE      ; J+L
         +keys K0_CRSRR, K_NONE, K4_K,   K_NONE, K_NONE      ; CRSR-right+K
         +keys K_NONE,   K1_LSH, K_NONE, K_NONE, K_NONE      ; SHIFT alone
+        ; VICE host Down+Left / Up+Right: SHIFT + CRSR-down + CRSR-right (ambiguous)
+        +keysp K0_BOTH, K_NONE, K_NONE, K_NONE, K6_RSH, DIR_NONE
+        +keysp K0_BOTH, K_NONE, K_NONE, K_NONE, K6_RSH, DIR_DOWN
+        +keysp K0_BOTH, K_NONE, K_NONE, K_NONE, K6_RSH, DIR_LEFT
+        +keysp K0_BOTH, K_NONE, K_NONE, K_NONE, K6_RSH, DIR_UP
+        +keysp K0_BOTH, K_NONE, K_NONE, K_NONE, K6_RSH, DIR_RIGHT
+        +keysp K0_BOTH, K1_LSH, K_NONE, K_NONE, K_NONE, DIR_DOWN
+        +keys  K0_BOTH, K_NONE, K_NONE, K_NONE, K_NONE      ; CRSR-down+CRSR-right, no shift
+        +keysp K_NONE,  K_NONE, K4_K,   K_NONE, K_NONE, DIR_UP  ; prev must not matter
 keytest_out
         !fill KEYTEST_N, $ee
 }
@@ -249,6 +273,11 @@ walk_script
 }
 !if AUTOWALK = 3 {              ; tests/test_edge_clamp.py: J to the west wall, then bump it
         +hold 240, K_NONE, K_NONE, K4_J, K_NONE, K_NONE
+        +idle 1
+}
+!if AUTOWALK = 5 {              ; tests/test_edge_clamp.py: L to the east wall, then bump it
+        +hold 250, K_NONE, K_NONE, K_NONE, K5_L, K_NONE      ; (255 = $ff would mean restart)
+        +hold 30, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
         +idle 1
 }
 !if AUTOWALK = 4 {              ; tests/test_long_run_fps.py: a 21x11 loop forever

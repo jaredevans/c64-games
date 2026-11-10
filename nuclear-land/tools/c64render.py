@@ -48,7 +48,8 @@ def render_view(map_bytes, glyph, colors, cam_x, cam_y, cols=40, rows=18, map_w=
     out = [[bg] * (cols * 8) for _ in range(rows * 8)]
     for r in range(rows):
         for c in range(cols):
-            code = map_bytes[(cam_y + r) * map_w + cam_x + c]
+            i = (cam_y + r) * map_w + cam_x + c
+            code = map_bytes[i] if i < len(map_bytes) else 32   # past the map end: hidden column
             g = glyph(code)
             if g is None:
                 raise ValueError(f'font code {code} in map view')

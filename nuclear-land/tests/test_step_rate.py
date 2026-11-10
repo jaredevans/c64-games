@@ -12,7 +12,7 @@ def main():
     g = lab['GLIDE_FRAMES']
     mem = vice.memread(prg, lab['steps_done'], 2, wait_s=6.0)
     steps = mem[0] | mem[1] << 8
-    vice.check(abs(steps - 96 // g) <= 1, f'steps_done {steps} == {96 // g} +-1 (GLIDE_FRAMES={g})')
+    vice.check(steps == 96 // g, f'steps_done {steps} == {96 // g} exactly (GLIDE_FRAMES={g})')
 
 
 if __name__ == '__main__':

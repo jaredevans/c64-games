@@ -55,6 +55,26 @@ start
         sta frame_count
         sta frame_count+1
         jsr walk_init
+!ifdef STRESS {                 ; test mode: 7 more sprites whose DMA covers lines 212-213
+        ldx #1
+-       lda #SPR_LEADER_PTR
+        sta SCREEN_A + $3f8,x
+        sta SCREEN_B + $3f8,x
+        lda #COL_YELLOW
+        sta VIC_SPR0COL,x
+        txa
+        asl
+        tay
+        lda stress_x,x
+        sta VIC_SPR0X,y
+        lda #193                ; active (DMA) on lines 193-213, pixels on 196-208
+        sta VIC_SPR0Y,y
+        inx
+        cpx #8
+        bne -
+        lda #$ff
+        sta VIC_SPREN
+}
 !ifdef KEYTEST {
         jsr keytest_run
 }
@@ -73,6 +93,10 @@ main_loop
         jsr sprite_place
 !ifdef AUTOWALK {
         jsr tod_snapshot
+}
+!ifdef FIXED_FY {               ; test mode: pin the map band's vertical fine offset
+        lda #FIXED_FY
+        sta fine_y
 }
 !ifdef FORCE_FINE {             ; test mode: sweep the map band through every fine position
         lda frame_count
@@ -143,6 +167,9 @@ leader_shape                    ; 8px figure in the left column, rows 3-15
         !fill 5*3, 0
         !byte 0
 
+!ifdef STRESS {
+stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (X >= 24)
+}
 !source "irq.asm"
 !source "input.asm"
 !source "walk.asm"

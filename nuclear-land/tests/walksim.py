@@ -2,7 +2,7 @@
 
 One step per GLIDE_FRAMES frames; input is sampled only when idle; a blocked target (code >=
 BLOCK_BASE) is a bump; the camera follows the leader (leader at band cell (19,9)) and is clamped to
-[0, MAP_W-40] x [0, MAP_H-18], in which case the leader sprite moves instead."""
+[0, MAP_W-39] x [0, MAP_H-18] (column 39 is always under the border), in which case the leader sprite moves instead."""
 
 DELTA = {0: (0, -1), 1: (0, 1), 2: (-1, 0), 3: (1, 0)}
 
@@ -30,7 +30,7 @@ def simulate(script, map_bytes, start=(29, 19), cam=(10, 10), glide=8, map_w=64,
         steps += 1
         ncx, ncy = lx - 19, ly - 9
         if clamp:
-            ncx = max(0, min(map_w - 40, ncx))
+            ncx = max(0, min(map_w - 39, ncx))
             ncy = max(0, min(map_h - 18, ncy))
         cx, cy = ncx, ncy
         busy = glide - 1
