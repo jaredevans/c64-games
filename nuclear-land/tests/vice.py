@@ -214,6 +214,69 @@ def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=(),
                 break
 
 
+def break_reads(prg, addr, hits, regions, after=(), port=6512, timeout=120):
+    """Run `prg` (warp, game disk attached) with an exec breakpoint at `addr`. Each of the first
+    `hits` times the CPU gets there, read `regions` [(addr, length)] while it is stopped. After the
+    last hit, resume and read `after` [(wait_s, addr, length)] at those times from then.
+    Returns ([[bytes per region] per hit], [bytes per after-read])."""
+    args = [X64SC, '-warp', *VIDEO, *drive_args(prg), '-autostartprgmode', '1', '-sounddev', 'dummy',
+            '-binarymonitor', '-binarymonitoraddress', f'ip4://127.0.0.1:{port}', '-autostart', str(prg)]
+    _port_free_or_die(port)
+    proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    reqid = [200]
+    try:
+        for _ in range(200):
+            try:
+                s = socket.create_connection(('127.0.0.1', port), timeout=1)
+                break
+            except OSError:
+                time.sleep(0.05)
+        else:
+            raise RuntimeError('could not connect to VICE binary monitor')
+        s.settimeout(timeout)
+
+        def send(cmd, body=b''):
+            reqid[0] += 1
+            s.sendall(struct.pack('<BBIIB', 0x02, 0x02, len(body), reqid[0], cmd) + body)
+            return reqid[0]
+
+        def wait_for(rtype, rid=None):
+            while True:
+                _stx, _api, blen, t, err, r = struct.unpack('<BBIBBI', _recv_exact(s, 12))
+                data = _recv_exact(s, blen)
+                if t == rtype and (rid is None or r == rid):
+                    if err:
+                        raise RuntimeError(f'monitor error {err} for response {t:#x}')
+                    return data
+
+        def get(a, n):
+            rid = send(0x01, struct.pack('<BHHBH', 0, a, a + n - 1, 0, 0))
+            data = wait_for(0x01, rid)
+            return data[2:2 + struct.unpack('<H', data[:2])[0]]
+
+        rid = send(0x12, struct.pack('<HHBBBB', addr, addr, 1, 1, 4, 0))    # exec checkpoint, stops
+        wait_for(0x11, rid)
+        send(0xaa)                                                           # resume
+        got = []
+        for _ in range(hits):
+            wait_for(0x62)                                                   # stopped at the checkpoint
+            got.append([get(a, n) for a, n in regions])
+            send(0xaa)
+        later, t0 = [], time.time()
+        for w, a, n in after:
+            time.sleep(max(0, w - (time.time() - t0)))
+            later.append(get(a, n))
+            send(0xaa)
+        s.close()
+        return got, later
+    finally:
+        try:
+            os.killpg(proc.pid, 9)
+        except ProcessLookupError:
+            pass
+        proc.wait()
+
+
 def _port_free_or_die(port):
     try:
         socket.create_connection(('127.0.0.1', port), timeout=0.2).close()

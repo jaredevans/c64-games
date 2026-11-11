@@ -417,10 +417,76 @@ maren_use
         ldx #>msg_treats
         jmp msg_set
 
+; game_reset: everything a game changes that the start-up routines don't set themselves - the
+; Known list, who has been met and what they were asked, trust, the skill spots' flags, the level,
+; and the map's gate and hatch. Called by start, so the first game and every new one begin alike.
+!zone game_reset
+game_reset
+        lda #0
+        ldx #8*4-1
+-       sta asked,x
+        dex
+        bpl -
+        ldx #7
+-       sta trust,x
+        sta met,x
+        dex
+        bpl -
+        ldx #KNOWN_MAX-1
+-       sta known_ids,x
+        dex
+        bpl -
+        ldx #3                  ; NAME JOB REACTOR VOSS
+-       txa
+        sta known_ids,x
+        dex
+        bpl -
+        lda #4
+        sta known_n
+        lda #0
+        sta gate_opened
+        sta hatch_opened
+        sta jory_treated
+        sta game_over
+        sta underground
+        sta cam_lo_x            ; the town's camera limits
+        sta cam_lo_y
+        lda #CAM_MAX_X
+        sta cam_hi_x
+        lda #CAM_MAX_Y
+        sta cam_hi_y
+        ldx #0                  ; the gate shut
+.gate   cpx #GATE_N
+        bcs +
+        stx og_i
+        lda gate_x,x
+        sta zp_tmp
+        lda gate_y,x
+        sta zp_row
+        jsr map_cell_ptr
+        ldy #0
+        lda #T_GATE
+        sta (zp_src),y
+        ldx og_i
+        inx
+        bne .gate
++
+        lda #HAS_HATCH          ; the hatch shut (a run-time test: the map's .inc comes later)
+        beq +
+        lda #HATCH_X
+        sta zp_tmp
+        lda #HATCH_Y
+        sta zp_row
+        jsr map_cell_ptr
+        ldy #0
+        lda #T_HATCH
+        sta (zp_src),y
++       rts
+
 ; the_end: leaving Voss once he has named Corwin. The ending screen in the walking charset: the
 ; good ending with two or more of the four proofs on the Known list, the open one with fewer
 ; (gen/dialogue.inc end_good / end_open, from dialogue/ending.txt), how many the squad found, and
-; THE END. The game stops here: interrupts off, the screen stays.
+; THE END. RETURN then starts a new game (restart).
 !zone the_end
 the_end
         sei
@@ -514,11 +580,47 @@ the_end
         sta SCREEN_A + 22*40 + 16,x
         dex
         bpl -
+        ldx #26
+-       lda txt_again,x
+        sta SCREEN_A + 24*40 + 6,x
+        dex
+        bpl -
         lda #1
         sta game_over
         lda #D011_TXT
         sta VIC_CTRL1
-.stop   jmp .stop
+        ldx #50                 ; a second first, so the RETURN that left Voss doesn't count
+.frame  lda VIC_RASTER
+        cmp #250
+        bne .frame
+-       lda VIC_RASTER
+        cmp #250
+        beq -
+        dex
+        bne .frame
+        lda #0
+        sta KEYBUF_N
+.key
+!ifdef RESTART_TEST {           ; tests/test_restart.py: RETURN is pressed
+        lda #13
+        sta KEYBUF
+        lda #1
+        sta KEYBUF_N
+}
+        jsr SCNKEY              ; (no interrupts: scan the keyboard here)
+        jsr GETIN
+        cmp #13
+        bne .key
+        ; fall through
+
+; restart: a new game, through the whole start-up again (start calls game_reset)
+restart
+        sei
+        ldx #$ff
+        txs
+        lda #1
+        sta restarted
+        jmp start
 .down   lda zp_dst              ; zp_dst one row down
         clc
         adc #40
@@ -531,6 +633,8 @@ proof_kw    !byte KW_CARTS, KW_BARRELS, KW_TRACKS, KW_TAPPED
 txt_found   !scr "the squad found ", 0
 txt_found2  !scr " of the 4 proofs.", 0
 txt_the_end !scr "the end."
+txt_again   !scr "press return to play again."
+restarted   !byte 0             ; 1 once a game has been restarted (tests)
 end_n       !byte 0
 game_over   !byte 0
 

@@ -65,6 +65,12 @@ COL_LGREEN = 13
 COL_LBLUE = 14
 COL_LGREY = 15
 
+; ---- KERNAL keyboard (talk.asm, and the ending's RETURN) ----
+SCNKEY      = $ff9f
+GETIN       = $ffe4
+KEYBUF      = $0277     ; keyboard buffer
+KEYBUF_N    = $c6       ; characters in it
+
 ; ---- zero page ----
 cam_x       = $02
 cam_y       = $03

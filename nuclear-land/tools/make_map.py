@@ -154,6 +154,10 @@ def convert(name):
     gates = [(x, y) for y, line in enumerate(grid) for x, ch in enumerate(line) if ch == 'G']
     for x, y in gates:
         assert out[(y + 1) * W + x] < bb, f'{name}: gate cell {x},{y} has nothing passable below it'
+    hatches = [(x, y) for y, line in enumerate(grid) for x, ch in enumerate(line) if ch == 'H']
+    assert len(hatches) <= 1, f'{name}: more than one hatch'
+    hx, hy = hatches[0] if hatches else (0, 0)
+    inc += [f'HAS_HATCH = {len(hatches)}', f'HATCH_X = {hx}', f'HATCH_Y = {hy}']     # (a new game shuts it)
     inc.append(f'GATE_N = {len(gates)}')
     inc.append('gate_x !byte ' + (', '.join(str(x) for x, _ in gates) or '0'))
     inc.append('gate_y !byte ' + (', '.join(str(y) for _, y in gates) or '0'))

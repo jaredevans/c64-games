@@ -643,6 +643,15 @@ walk_script
         +press 2, 2, K2_T
         +idle 1
 }
+!if AUTOWALK = 41 {             ; tests/test_restart.py: AUTOWALK 38, then (in the new game) 2 steps up
+        +to_basement
+        +steps 15, K_NONE, K5_L
+        +steps 3, K4_K, K_NONE
+        +press 2, 2, K2_T
+        +idle 1
+        +steps 2, K4_I, K_NONE
+        +idle 1
+}
 !if AUTOWALK = 19 {             ; Maren leads
         +to_hesper
         +press 2, 1, K1_3

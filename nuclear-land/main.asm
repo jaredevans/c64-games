@@ -39,6 +39,7 @@ start
         jsr clear_screen
         jsr clear_colram
         jsr reu_detect          ; talk.asm: an REU caches portraits
+        jsr game_reset          ; squad.asm: a new game (the first, or after the ending)
         lda #MAP_START_X - LEADER_COL       ; maps put the start where the camera is unclamped
         sta cam_x
         lda #MAP_START_Y - LEADER_ROW
@@ -87,9 +88,12 @@ start
         jsr acttest_run
 }
 !ifdef AUTOWALK {
+        lda restarted           ; a new game after the ending carries on with the script
+        bne +
         jsr script_init
-        jsr tod_start
++       jsr tod_start
 }
+boot_done                       ; (tests/test_restart.py breaks here: start-up is complete)
         jsr irq_init
 main_loop
         lda frame_ready

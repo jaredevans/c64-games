@@ -12,6 +12,9 @@ UP_X = 35
 UP_Y = 4
 BCAM_X = 12
 BCAM_Y = 48
+HAS_HATCH = 1
+HATCH_X = 34
+HATCH_Y = 4
 GATE_N = 3
 gate_x !byte 31, 32, 33
 gate_y !byte 13, 13, 13

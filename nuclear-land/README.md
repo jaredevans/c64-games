@@ -100,7 +100,7 @@ beside the hatch.
 **The ending.** Once Voss has named Corwin, leaving the conversation ends the game. With two or more
 of the four proofs on the Known list (CARTS, BARRELS, TRACKS, TAPPED) the town hears the truth;
 with fewer, Voss is back but the theft is never proved. The ending screen says how many proofs the
-squad found, then THE END. The game stops there: reset the C64 to play again. How to get there is
+squad found, then THE END. Press RETURN there to start a new game. How to get there is
 in the [Spoiler](#spoiler) section at the bottom.
 
 ## Running it
@@ -132,6 +132,7 @@ set to NTSC.
 | `T` | Talk to the person next to you |
 | `U` | Use the leader's skill at a skill spot (Maren: also treat the squad) |
 | Letters, `DEL`, `RETURN` | While talking: type a keyword (up to 12 letters) and ask; `RETURN` on an empty line leaves |
+| `RETURN` | On the ending screen: start a new game |
 
 Both sets of movement keys always work. There is no joystick support.
 

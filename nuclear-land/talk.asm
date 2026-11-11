@@ -44,10 +44,6 @@ SETNAM       = $ffbd
 LOAD         = $ffd5            ; through the $0330 vector, so fastload cartridges speed it up
 KSTATUS      = $90              ; KERNAL I/O status
 KDEVICE      = $ba              ; the device the game was loaded from
-SCNKEY       = $ff9f
-GETIN        = $ffe4
-KEYBUF       = $0277
-KEYBUF_N     = $c6
 
 ; talk_enter: X = people index of the person to talk to (who has dialogue). talk_enter_cast: A = cast
 ; index, X = people index or $ff for Voss (a figure on the basement map, not a townsperson sprite).

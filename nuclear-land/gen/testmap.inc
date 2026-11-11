@@ -11,6 +11,9 @@ UP_X = 0
 UP_Y = 0
 BCAM_X = 0
 BCAM_Y = 0
+HAS_HATCH = 0
+HATCH_X = 0
+HATCH_Y = 0
 GATE_N = 0
 gate_x !byte 0
 gate_y !byte 0

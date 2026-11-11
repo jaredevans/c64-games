@@ -1,7 +1,7 @@
 """Milestone 5: the ending. Once Voss has answered CORWIN, leaving his conversation ends the game:
 a text screen with the good ending if two or more of the four proofs (CARTS, BARRELS, TRACKS,
-TAPPED) are on the Known list, the open ending with fewer, how many the squad found, and THE END.
-The game stops there. Leaving Voss without having asked about Corwin doesn't end it.
+TAPPED) are on the Known list, the open ending with fewer, how many the squad found, THE END, and
+that RETURN plays again (tests/test_restart.py). Leaving Voss without having asked about Corwin doesn't end it.
 
 PROOFS=n seeds the first n proofs into Known (a test hook, like KNOW_HATCH); AUTOWALK 40 also has
 Dials find the tap on the way, so 1 seeded + TAPPED = 2 counts the real skill."""
@@ -26,6 +26,7 @@ def screen(kind, found):
         r += 1
     rows[r + 1] = f'  The squad found {found} of the 4 proofs.'.ljust(40)
     rows[22] = 'THE END.'.center(40)
+    rows[24] = 'PRESS RETURN TO PLAY AGAIN.'.center(40)
     return b''.join(vice.scr(row) for row in rows)
 
 
