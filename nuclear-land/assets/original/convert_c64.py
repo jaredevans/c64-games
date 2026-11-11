@@ -74,8 +74,9 @@ CONFIGS = {
         iris=CYAN,
         brow_fix=78,                                                      # no white speck in the left brow
         base=[RED, YELLOW, ORANGE, PINK, GREY, LGREEN],
-        add=[((0, 7, 5, 12), [LGREY]), ((11, 7, 15, 12), [LGREY])],      # shine on the two cups
-        gold=[(6, 14, 11, 18)],                                           # keys
+        add=[((0, 4, 5, 7), [LGREY]), ((1, 8, 7, 14), [LGREY])],         # shine on the ladle, cup and handle
+        remove=[((10, 3, 12, 6), [RED])],                                 # no red streak at the temple
+        gold=[(10, 15, 12, 18)],                                          # keys (not the hand round them)
     ),
     'Ilse-Brandt': dict(                                                  # the warden
         src='Ilse-Brandt.jpeg',
