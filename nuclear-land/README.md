@@ -28,67 +28,6 @@ conversation gives up a piece of the mystery. The squad:
 Combat, an overworld and saving are out of scope for the prototype — the point is the town and
 its people.
 
-## Status
-
-**Milestone 1: walking engine (done).** Smooth 8-frame glide per tile step in all four directions,
-hardware fine scrolling with double-buffered coarse scrolling, a rock-still status line and squad
-strip, the camera stopping at the map edges, a steady 50 fps (PAL).
-
-**Milestone 2: Cinderhill (done).** The real town, 64×48 tiles:
-
-- Ten districts (Market Row, the Reactor Yard and Gate, Old Lots, West Shacks, the Caravan Camp,
-  Town Hall, Storehouse, Greenhouse and the Town Square), drawn from a 45-tile hi-res set with a
-  multi-cell reactor dome.
-- Seven townspeople as hardware sprites. They stay glued to the map while it scrolls and block your
-  way. Pip wanders Market Row.
-- A status line naming the district you're in, with a Geiger meter that rises near hot spots.
-- A squad strip with the leader marked, health bars, and a message line.
-- Keys **1–4** switch the leader, and the squad figure takes the leader's colour.
-- Glowing hot spots drain everyone's health. A member at zero is sick and can't lead. With Maren
-  leading, **U** treats the squad, and a sick Maren slowly recovers away from radiation. Nobody dies.
-
-**Milestone 3: talking to Hesper (done).** Press **T** next to Hesper, the water-keeper in front of
-the Market Row pump house, and the screen changes:
-
-- Hesper's portrait sits on the left, as a full-resolution hi-res bitmap.
-- On the right are the name, a trust meter and the running conversation, drawn in the C64's own
-  upper/lower-case font. Your words are in yellow, the answers in grey, and long talks scroll.
-- At the bottom: the Known keywords, who leads, and a prompt. Type any word and press RETURN. The
-  first 4 letters are enough, so WATE finds WATER.
-- Hesper starts wary and deflects some questions. Trust grows with each new topic answered, faster
-  if Maren leads. If Vesna leads at the first meeting, Hesper starts one step friendlier. With
-  enough trust, Hesper shares a clue.
-- Words in CAPITALS in an answer join the squad's Known list.
-- RETURN on an empty line takes you back to the town exactly as you left it, and Hesper remembers
-  you.
-
-**Milestone 4: the whole cast talks (done).** Everyone in town now has a conversation, written in
-`dialogue/` (the story and the clue chain are in `dialogue/README.md`):
-
-- Brandt at the reactor gate, Tamsin at the greenhouse, Jory at the west-edge shack, Odalys at the
-  caravan camp, Pip on Market Row and Mayor Corwin at the town hall, plus new topics for Hesper.
-- Each has their own C64 portrait, with eye whites and coloured irises drawn as hardware sprites
-  over the bitmap.
-- Portraits load from disk when a conversation opens (one file per person on the game disk), so
-  the game is now a D64; "you approach <name>..." shows while it loads. On a stock 1541 that
-  takes about 9 seconds; fastload cartridges, JiffyDOS, SD2IEC, the C64 Ultimate's drive and
-  emulators are much quicker. With an REU (RAM Expansion Unit, real or emulated), each face is
-  kept there after its first load, so going back to someone is instant.
-- Jory stays closed until Maren treats Jory's fever, and Voss is hidden: milestone 5 opens both.
-
-**Milestone 5: the mystery's end (done).** The squad's skills work at their spots.
-**U** uses the leader's skill, and the message line says what was found:
-
-- **Vesna** next to Brandt talks the Warden into opening up: the reactor gate opens, and Brandt is
-  at Open the next time you talk.
-- **Dials** beside the coolant valve behind the dome finds the tap on the line (TAPPED joins the
-  Known list). Beside the old service hatch next to it, Dials forces it open, but only once Pip
-  has told the squad about the HATCH.
-- **Maren** next to Jory treats Jory's fever, which ends Jory's silence: Jory starts at Open. Next
-  to Jory again, Maren treats the squad as usual.
-- **Rook** on the cart tracks outside the compound's back fence reads where they lead (TRACKS
-  joins the Known list).
-
 A skill can be used again at its spot: a word joins the Known list only once, and an open gate or
 hatch just stands open.
 
