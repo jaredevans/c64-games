@@ -473,6 +473,46 @@ walk_script
         +hold 80, K_NONE, K_NONE, K4_I, K_NONE, K_NONE
         +idle 1
 }
+!macro to_hesper {              ; Cinderhill start (32,24) -> (5,17), just below Hesper (5,16)
+        +hold 16, K_NONE, K_NONE, K4_I, K_NONE, K_NONE       ; (32,22)
+        +hold 216, K_NONE, K_NONE, K4_J, K_NONE, K_NONE      ; west along the street to (5,22)
+        +hold 40, K_NONE, K_NONE, K4_I, K_NONE, K_NONE       ; (5,17)
+}
+!if AUTOWALK = 18 {             ; tests/test_talk_*.py: to Hesper, Dials leads, T
+        +to_hesper
+        +press 2, 7, K7_2
+        +idle 4
+        +press 2, 2, K2_T
+        +idle 1
+}
+!if AUTOWALK = 19 {             ; Maren leads
+        +to_hesper
+        +press 2, 1, K1_3
+        +idle 4
+        +press 2, 2, K2_T
+        +idle 1
+}
+!if AUTOWALK = 20 {             ; Vesna leads (first-meeting bonus)
+        +to_hesper
+        +press 2, 2, K2_T
+        +idle 1
+}
+!if AUTOWALK = 21 {             ; tests/test_talk_leave.py: AUTOWALK=18 without the T
+        +to_hesper
+        +press 2, 7, K7_2
+        +idle 4
+}
+!if AUTOWALK = 22 {             ; tests/test_talk_leave.py: talk, leave, step away and back, talk again
+        +to_hesper
+        +press 2, 7, K7_2
+        +idle 4
+        +press 2, 2, K2_T
+        +idle 1
+        +hold 8, K_NONE, K_NONE, K4_J, K_NONE, K_NONE
+        +hold 8, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
+        +press 2, 2, K2_T
+        +idle 1
+}
 !if AUTOWALK = 13 {             ; tests/test_actions.py: AUTOWALK=10's route, then T (held), 2, U
         +hold 64, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
         +hold 48, K_NONE, K_NONE, K4_I, K_NONE, K_NONE

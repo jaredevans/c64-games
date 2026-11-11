@@ -53,6 +53,8 @@ start
         sta frame_ready
         sta frame_count
         sta frame_count+1
+        lda #MODE_WALK
+        sta game_mode
         jsr walk_init
         jsr people_init
         jsr squad_init
@@ -92,6 +94,11 @@ main_loop
         beq main_loop
         lda #0
         sta frame_ready
+        lda game_mode
+        beq +
+        jsr talk_frame
+        jmp main_loop
++
         jsr input_read
         jsr squad_act
         jsr walk_update
@@ -199,6 +206,8 @@ stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (
 !source "hud.asm"
 !source "status.asm"
 !source "squad.asm"
+!source "talk.asm"
+!source "gen/dialogue.inc"
 !source "people.asm"
 !ifdef TEST_PEOPLE {
 !source "tests/test_people.inc"

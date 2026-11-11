@@ -117,6 +117,7 @@ kb_row7     = $3b       ; 1 2
 act_prev    = $3c       ; last frame's decoded action (edge detection)
 act_pending = $3d       ; action waiting for the leader to stand still (ACT_*)
 hud_dirty   = $3e       ; squad strip needs a redraw
+game_mode   = $3f       ; MODE_WALK or MODE_TALK
 
 ; ---- directions ----
 DIR_UP    = 0
@@ -130,5 +131,9 @@ ACT_LEAD0 = 0           ; 1-4: choose leader 0-3
 ACT_TALK  = 4
 ACT_USE   = 5
 ACT_NONE  = $ff
+
+; ---- game modes ----
+MODE_WALK = 0
+MODE_TALK = 1
 
 COLBUF      = $b800     ; 1 KB colour staging buffer, same layout as colour RAM

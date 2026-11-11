@@ -99,7 +99,13 @@ act_talk
         ldx #>msg_nobody
         jmp msg_set
 .found  stx talk_target
-        lda people_name_lo,x    ; msg_set wants A = lo, X = hi
+        ldy people_cast,x       ; someone with dialogue: the talking screen
+        cpy #$ff
+        beq +
+        lda dlg_hi,y
+        beq +
+        jmp talk_enter
++       lda people_name_lo,x    ; msg_set wants A = lo, X = hi
         pha
         lda people_name_hi,x
         tax
