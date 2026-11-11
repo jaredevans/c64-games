@@ -152,7 +152,8 @@ CONFIGS = {
         iris=GREEN,
         brow_fix=78,                                                      # no white speck in the left brow
         base=[RED, YELLOW, ORANGE, PINK, GREY, LGREEN, LGREY],
-        remove=[((12, 7, 15, 9), [ORANGE, PINK, RED, GREY, LGREY])],      # the plant's leaves
+        remove=[((12, 7, 15, 9), [ORANGE, PINK, RED, GREY, LGREY]),     # the plant's leaves...
+                ((11, 7, 15, 13), [YELLOW])],                             # ...pale green, not yellow
         eyes=[(4, 5, 12, 9)],
     ),
 }
