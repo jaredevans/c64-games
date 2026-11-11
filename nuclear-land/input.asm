@@ -5,8 +5,13 @@
 ; L (right). Priority when several are held: up > down > left > right.
 ;
 ; Matrix (write $dc00 row select, read $dc01, active low):
-;   row 0: bit2 CRSR-right, bit7 CRSR-down     row 1: bit7 LSHIFT
-;   row 4: bit1 I, bit2 J, bit5 K              row 5: bit2 L        row 6: bit4 RSHIFT
+;   row 0: bit2 CRSR-right, bit7 CRSR-down     row 1: bit0 3, bit3 4, bit7 LSHIFT
+;   row 2: bit6 T        row 3: bit6 U         row 4: bit1 I, bit2 J, bit5 K
+;   row 5: bit2 L        row 6: bit4 RSHIFT    row 7: bit0 1, bit3 2
+;
+; Action keys 1-4 (leader), T (talk), U (use skill) act once per press: input_read latches an action
+; in act_pending only when it appears after a frame with none; squad_act runs it when the leader
+; stands still.
 
 ; input_read: fill kb_row* (hardware, or the AUTOWALK script), decode into cur_dir
 input_read
@@ -33,11 +38,67 @@ input_read
         sta CIA1_PRA
         lda CIA1_PRB
         sta kb_row6
+        lda #%11111011
+        sta CIA1_PRA
+        lda CIA1_PRB
+        sta kb_row2
+        lda #%11110111
+        sta CIA1_PRA
+        lda CIA1_PRB
+        sta kb_row3
+        lda #%01111111
+        sta CIA1_PRA
+        lda CIA1_PRB
+        sta kb_row7
         lda #$ff
         sta CIA1_PRA
 }
         jsr decode_keys
         sta cur_dir
+        jsr decode_action       ; latch a newly pressed action
+        ldx act_prev
+        sta act_prev
+        cmp #ACT_NONE
+        beq +
+        cpx #ACT_NONE
+        bne +
+        sta act_pending
++       rts
+
+; decode_action: kb_row1/2/3/7 -> A = ACT_LEAD0..3, ACT_TALK, ACT_USE or ACT_NONE.
+; Pure. Priority 1 > 2 > 3 > 4 > T > U.
+decode_action
+        lda kb_row7
+        and #%00000001
+        beq .a1
+        lda kb_row7
+        and #%00001000
+        beq .a2
+        lda kb_row1
+        and #%00000001
+        beq .a3
+        lda kb_row1
+        and #%00001000
+        beq .a4
+        lda kb_row2
+        and #%01000000
+        beq .at
+        lda kb_row3
+        and #%01000000
+        beq .au
+        lda #ACT_NONE
+        rts
+.a1     lda #ACT_LEAD0
+        rts
+.a2     lda #ACT_LEAD0+1
+        rts
+.a3     lda #ACT_LEAD0+2
+        rts
+.a4     lda #ACT_LEAD0+3
+        rts
+.at     lda #ACT_TALK
+        rts
+.au     lda #ACT_USE
         rts
 
 ; decode_keys: kb_row0/1/4/5/6 + cur_dir (last frame's result) -> A = DIR_* or DIR_NONE.
@@ -126,6 +187,17 @@ K4_K     = $df
 K4_KJ    = $db
 K5_L     = $fb
 K6_RSH   = $ef
+K7_1     = $fe                  ; row 7 bit 0
+K7_2     = $f7                  ; row 7 bit 3
+K1_3     = $fe                  ; row 1 bit 0
+K1_4     = $f7                  ; row 1 bit 3
+K2_T     = $bf                  ; row 2 bit 6
+K3_U     = $bf                  ; row 3 bit 6
+K1_3LSH  = $7e                  ; 3 + LSHIFT
+
+ACTTEST_N = 12
+; acttest: one 8-byte entry per case (rows 0-7, active low); order matches tests/test_decode_keys.py
+!macro act8 .r0, .r1, .r2, .r3, .r4, .r5, .r6, .r7 { !byte .r0, .r1, .r2, .r3, .r4, .r5, .r6, .r7 }
 
 !ifdef KEYTEST {
 KEYTEST_N = 23
@@ -199,12 +271,73 @@ keytest_cases                   ; order matches tests/test_decode_keys.py
         +keysp K_NONE,  K_NONE, K4_K,   K_NONE, K_NONE, DIR_UP  ; prev must not matter
 keytest_out
         !fill KEYTEST_N, $ee
+
+; acttest_run: decode_action and decode_keys for every acttest case
+acttest_run
+        ldx #0
+-       txa
+        asl
+        asl
+        asl
+        tay
+        lda acttest_cases,y
+        sta kb_row0
+        lda acttest_cases+1,y
+        sta kb_row1
+        lda acttest_cases+2,y
+        sta kb_row2
+        lda acttest_cases+3,y
+        sta kb_row3
+        lda acttest_cases+4,y
+        sta kb_row4
+        lda acttest_cases+5,y
+        sta kb_row5
+        lda acttest_cases+6,y
+        sta kb_row6
+        lda acttest_cases+7,y
+        sta kb_row7
+        lda #DIR_NONE
+        sta cur_dir
+        stx zp_tmp
+        jsr decode_action
+        ldx zp_tmp
+        sta acttest_act,x
+        jsr decode_keys
+        ldx zp_tmp
+        sta acttest_dir,x
+        inx
+        cpx #ACTTEST_N
+        bne -
+        rts
+acttest_cases
+        +act8 K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE   ; none
+        +act8 K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K7_1     ; 1
+        +act8 K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K7_2     ; 2
+        +act8 K_NONE, K1_3,   K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE   ; 3
+        +act8 K_NONE, K1_4,   K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE   ; 4
+        +act8 K_NONE, K_NONE, K2_T,   K_NONE, K_NONE, K_NONE, K_NONE, K_NONE   ; T
+        +act8 K_NONE, K_NONE, K_NONE, K3_U,   K_NONE, K_NONE, K_NONE, K_NONE   ; U
+        +act8 K_NONE, K_NONE, K2_T,   K_NONE, K_NONE, K_NONE, K_NONE, K7_1     ; 1+T
+        +act8 K_NONE, K_NONE, K2_T,   K3_U,   K_NONE, K_NONE, K_NONE, K_NONE   ; T+U
+        +act8 K_NONE, K_NONE, K_NONE, K3_U,   K_NONE, K5_L,   K_NONE, K_NONE   ; L+U
+        +act8 K_NONE, K1_LSH, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE   ; LSHIFT alone
+        +act8 K0_CRSRD, K1_3LSH, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE ; 3+LSHIFT+CRSR-down
+acttest_act
+        !fill ACTTEST_N, $ee
+acttest_dir
+        !fill ACTTEST_N, $ee
 }
 
 !ifdef AUTOWALK {
-; Script entries: frames (0 = end: all keys up forever), then the five row bytes.
-!macro hold .n, .r0, .r1, .r4, .r5, .r6 { !byte .n, .r0, .r1, .r4, .r5, .r6 }
-!macro idle .n { !byte .n, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE }
+; Script entries: frames (0 = end: all keys up forever; $ff = restart), then rows 0-7.
+!macro hold .n, .r0, .r1, .r4, .r5, .r6 { !byte .n, .r0, .r1, K_NONE, K_NONE, .r4, .r5, .r6, K_NONE }
+!macro idle .n { !byte .n, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE }
+!macro press .n, .row, .val {   ; one action key (row .row = .val) held .n frames
+        !byte .n
+        !for r, 0, 7 {
+                !if r = .row { !byte .val } else { !byte K_NONE }
+        }
+}
 
 script_init
         lda #<walk_script
@@ -236,6 +369,12 @@ script_step
         sta kb_row1
         iny
         lda (script_ptr),y
+        sta kb_row2
+        iny
+        lda (script_ptr),y
+        sta kb_row3
+        iny
+        lda (script_ptr),y
         sta kb_row4
         iny
         lda (script_ptr),y
@@ -243,9 +382,12 @@ script_step
         iny
         lda (script_ptr),y
         sta kb_row6
+        iny
+        lda (script_ptr),y
+        sta kb_row7
         lda script_ptr
         clc
-        adc #6
+        adc #9
         sta script_ptr
         bcc .play
         inc script_ptr+1
@@ -254,9 +396,12 @@ script_step
 .ended  lda #K_NONE
         sta kb_row0
         sta kb_row1
+        sta kb_row2
+        sta kb_row3
         sta kb_row4
         sta kb_row5
         sta kb_row6
+        sta kb_row7
         rts
 
 walk_script
@@ -298,6 +443,20 @@ walk_script
 !if AUTOWALK = 10 {             ; tests/test_people_block.py: right 8 to (37,19), up 4, bump P1
         +hold 64, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
         +hold 48, K_NONE, K_NONE, K4_I, K_NONE, K_NONE
+        +idle 1
+}
+!if AUTOWALK = 13 {             ; tests/test_actions.py: AUTOWALK=10's route, then T (held), 2, U
+        +hold 64, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
+        +hold 48, K_NONE, K_NONE, K4_I, K_NONE, K_NONE
+        +press 60, 2, K2_T
+        +idle 4
+        +press 2, 7, K7_2
+        +idle 4
+        +press 2, 3, K3_U
+        +idle 1
+}
+!if AUTOWALK = 14 {             ; tests/test_actions.py: T at the start, nobody adjacent
+        +press 30, 2, K2_T
         +idle 1
 }
 !if AUTOWALK = 11 {             ; tests/test_edge_clamp_ns.py: I to the north wall, then bump it

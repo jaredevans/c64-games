@@ -43,7 +43,6 @@ start
         sta cam_y
         lda #>SCREEN_A
         jsr view_draw_full
-        jsr hud_draw
         jsr sprite_init
         lda #FINE_REST_X
         sta fine_x
@@ -56,6 +55,8 @@ start
         sta frame_count+1
         jsr walk_init
         jsr people_init
+        jsr squad_init
+        jsr hud_draw            ; needs the squad (squad_init)
         jsr status_init         ; needs the leader's cell (walk_init)
 !ifdef STRESS {                 ; test mode: 7 more sprites whose DMA covers lines 212-213
         ldx #1
@@ -79,6 +80,7 @@ start
 }
 !ifdef KEYTEST {
         jsr keytest_run
+        jsr acttest_run
 }
 !ifdef AUTOWALK {
         jsr script_init
@@ -91,6 +93,7 @@ main_loop
         lda #0
         sta frame_ready
         jsr input_read
+        jsr squad_act
         jsr walk_update
         jsr people_update
         jsr sprite_place
@@ -108,6 +111,7 @@ main_loop
 !ifdef TIMING {
         jsr timing_heavy
 }
+        jsr hud_update
 !ifdef AUTOWALK {
         jsr tod_snapshot
 }
@@ -194,6 +198,7 @@ stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (
 !source "view.asm"
 !source "hud.asm"
 !source "status.asm"
+!source "squad.asm"
 !source "people.asm"
 !ifdef TEST_PEOPLE {
 !source "tests/test_people.inc"

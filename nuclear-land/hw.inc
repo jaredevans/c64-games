@@ -54,8 +54,12 @@ COL_BLACK = 0
 COL_WHITE = 1
 COL_CYAN  = 3
 COL_YELLOW = 7
+COL_ORANGE = 8
 COL_LRED  = 10
 COL_DGREY = 11
+COL_GREEN = 5
+COL_LGREEN = 13
+COL_LBLUE = 14
 COL_LGREY = 15
 
 ; ---- zero page ----
@@ -107,6 +111,12 @@ pp_bit      = $35
 spr_enable  = $36       ; $D015 shadow (bit 0 = leader, bits 1-7 = people)
 lfsr        = $37       ; people_update's random source
 heavy_job   = $38       ; walk_heavy's job this frame (HEAVY_*)
+kb_row2     = $39       ; T
+kb_row3     = $3a       ; U
+kb_row7     = $3b       ; 1 2
+act_prev    = $3c       ; last frame's decoded action (edge detection)
+act_pending = $3d       ; action waiting for the leader to stand still (ACT_*)
+hud_dirty   = $3e       ; squad strip needs a redraw
 
 ; ---- directions ----
 DIR_UP    = 0
@@ -114,5 +124,11 @@ DIR_DOWN  = 1
 DIR_LEFT  = 2
 DIR_RIGHT = 3
 DIR_NONE  = $ff
+
+; ---- actions (keys 1-4, T, U) ----
+ACT_LEAD0 = 0           ; 1-4: choose leader 0-3
+ACT_TALK  = 4
+ACT_USE   = 5
+ACT_NONE  = $ff
 
 COLBUF      = $b800     ; 1 KB colour staging buffer, same layout as colour RAM
