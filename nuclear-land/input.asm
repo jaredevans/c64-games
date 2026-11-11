@@ -509,6 +509,102 @@ walk_script
         +press 2, 2, K2_T
         +idle 1
 }
+; M5 skill spots (tests/test_skills.py)
+!macro steps .n, .r4, .r5 { +hold .n*GLIDE_FRAMES, K_NONE, K_NONE, .r4, .r5, K_NONE }
+!macro use {
+        +press 2, 3, K3_U
+        +idle 4
+}
+!macro to_brandt {              ; start (32,24) -> (32,14), beside Brandt (31,14), facing the gate
+        +steps 10, K4_I, K_NONE
+}
+!macro into_yard {              ; Vesna (leading from the start) opens the gate, the squad walks in to (32,12)
+        +to_brandt
+        +use
+        +steps 2, K4_I, K_NONE
+}
+!macro to_valve {               ; (32,12) -> (30,4), beside the valve (31,4); Dials leads
+        +press 2, 7, K7_2
+        +idle 4
+        +steps 2, K4_I, K_NONE
+        +steps 3, K4_J, K_NONE
+        +steps 6, K4_I, K_NONE
+        +steps 1, K_NONE, K5_L
+}
+!macro valve_to_hatch {         ; (30,4) -> (35,4), beside the hatch (34,4), round the dome
+        +steps 1, K4_J, K_NONE
+        +steps 6, K4_K, K_NONE
+        +steps 7, K_NONE, K5_L
+        +steps 6, K4_I, K_NONE
+        +steps 1, K4_J, K_NONE
+}
+!macro to_jory {                ; start (32,24) -> (5,39), beside Jory (4,39); Maren leads
+        +steps 8, K4_K, K_NONE
+        +steps 9, K4_J, K_NONE
+        +steps 7, K4_K, K_NONE
+        +steps 18, K4_J, K_NONE
+        +press 2, 1, K1_3
+        +idle 4
+}
+!if AUTOWALK = 29 {             ; Rook on the cart tracks at (44,19), U twice
+        +steps 4, K4_I, K_NONE
+        +steps 11, K_NONE, K5_L
+        +steps 1, K4_I, K_NONE
+        +steps 1, K_NONE, K5_L
+        +press 2, 1, K1_4
+        +idle 4
+        +use
+        +use
+}
+!if AUTOWALK = 30 {             ; Vesna: bump the shut gate, open it, walk in
+        +to_brandt
+        +idle 4
+        +hold 12, K_NONE, K_NONE, K4_I, K_NONE, K_NONE       ; (32,13) is the shut gate: a bump
+        +idle 4
+        +use
+        +steps 2, K4_I, K_NONE
+        +idle 1
+}
+!if AUTOWALK = 31 {             ; Vesna: open the gate, U again, no walking
+        +to_brandt
+        +use
+        +use
+        +idle 1
+}
+!if AUTOWALK = 32 {             ; Dials at the valve, U twice
+        +into_yard
+        +to_valve
+        +use
+        +use
+        +idle 1
+}
+!if AUTOWALK = 33 {             ; Dials at the hatch
+        +into_yard
+        +to_valve
+        +valve_to_hatch
+        +use
+        +idle 1
+}
+!if AUTOWALK = 34 {             ; Dials at the hatch, U twice
+        +into_yard
+        +to_valve
+        +valve_to_hatch
+        +use
+        +use
+        +idle 1
+}
+!if AUTOWALK = 35 {             ; Maren treats Jory, U again (the squad), then talks to Jory
+        +to_jory
+        +use
+        +use
+        +press 2, 2, K2_T
+        +idle 1
+}
+!if AUTOWALK = 36 {             ; Maren treats Jory
+        +to_jory
+        +use
+        +idle 1
+}
 !if AUTOWALK = 19 {             ; Maren leads
         +to_hesper
         +press 2, 1, K1_3

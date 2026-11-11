@@ -893,6 +893,9 @@ ts_text
 !if TYPESCRIPT = 9 {            ; tests/test_talk_cast.py: Brandt
         !pet "name", 13, "gate", 13, "voss", 13
 }
+!if TYPESCRIPT = 11 {           ; tests/test_skills.py: Jory, after Maren's treatment
+        !pet "name", 13
+}
 !if TYPESCRIPT = 3 {            ; tests/test_talk_input.py: junk, 14 letters, 3 DEL, RETURN, DEL, RETURN
         !pet "12!x", 13, "abcdefghijklmn", 20, 20, 20, 13, 20, 13
 }

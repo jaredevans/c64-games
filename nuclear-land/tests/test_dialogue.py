@@ -25,6 +25,15 @@ def main():
     check(d['keywords'][:4] == ['NAME', 'JOB', 'REACTOR', 'VOSS'], 'initial Known ids 0-3')
     check((NL / 'gen' / 'dialogue.inc').exists(), 'gen/dialogue.inc written')
 
+    # M5: the skill spots' words have ids (after every answer's word, so no id moves), no topic
+    # reveals them, and the asm gets an id constant for every keyword
+    kw = d['keywords']
+    check(kw[-2:] == ['TRACKS', 'TAPPED'] and len(kw) == 28, f'TRACKS and TAPPED end the dictionary ({len(kw)} words)')
+    check(not any(w in t['reveals'] for p in d['people'].values() for t in p['topics'].values()
+                  for w in ('TRACKS', 'TAPPED')), 'no answer reveals TRACKS or TAPPED')
+    inc = (NL / 'gen' / 'dialogue.inc').read_text()
+    check(all(f'KW_{w} = {i}\n' in inc for i, w in enumerate(kw)), 'gen/dialogue.inc has KW_<WORD> = id for every keyword')
+
     t = Talk('h')
     t.enter(DIALS)
     defl = t.ask('TANKS', DIALS)

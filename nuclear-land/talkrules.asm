@@ -199,6 +199,21 @@ known_add
         inc known_n
 .out    rts
 
+; known_has: C=1 if keyword A is on the Known list. Clobbers X.
+!zone known_has
+known_has
+        ldx #0
+-       cpx known_n
+        beq .no
+        cmp known_ids,x
+        beq .yes
+        inx
+        bne -
+.no     clc
+        rts
+.yes    sec
+        rts
+
 !ifdef KNOWNTEST {
 ; knowntest_fill: test hook - 30 known keywords (ids cycling through the dictionary)
 knowntest_fill

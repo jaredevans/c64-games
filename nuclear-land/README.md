@@ -77,8 +77,22 @@ the Market Row pump house, and the screen changes:
 - Jory stays closed until Maren treats his fever, and Voss's conversation is written but he can't be
   found yet: both wait on milestone 5.
 
-**Next (milestone 5):** the squad's skills at the skill spots (Rook's tracks, Dials's valve and
-hatch, Vesna at the gate, Maren with Jory), the way down to Voss, and the ending.
+**Milestone 5: the mystery's end (in progress).** The squad's skills now work at their spots.
+**U** uses the leader's skill, and the message line says what was found:
+
+- **Vesna** next to Brandt talks her into opening up: the reactor gate opens, and Brandt is at Open
+  the next time you talk.
+- **Dials** beside the coolant valve behind the dome finds the tap on the line (TAPPED joins the
+  Known list). Beside the old service hatch next to it, Dials forces it open, but only once Pip
+  has told the squad about the HATCH.
+- **Maren** next to Jory treats his fever, which ends Jory's silence: he starts at Open. Next to him
+  again, Maren treats the squad as usual.
+- **Rook** on the cart tracks outside the compound's back fence reads where they lead (TRACKS
+  joins the Known list).
+
+A skill can be used again at its spot: a word joins the Known list only once, and an open gate or
+hatch just stands open. Still to come: the way down the hatch to Voss, and the ending, which counts
+the proofs the squad found (CARTS, BARRELS, TRACKS, TAPPED).
 
 ## Running it
 
@@ -104,7 +118,7 @@ set to NTSC.
 | `I` / `K` / `J` / `L` | Move up / down / left / right |
 | `1` `2` `3` `4` | Choose the leader: Vesna, Dials, Maren, Rook |
 | `T` | Talk to the person next to you |
-| `U` | Use the leader's skill (Maren: treat the squad) |
+| `U` | Use the leader's skill at a skill spot (Maren: also treat the squad) |
 | Letters, `DEL`, `RETURN` | While talking: type a keyword (up to 12 letters) and ask; `RETURN` on an empty line leaves |
 
 Both sets of movement keys always work. There is no joystick support.
@@ -121,12 +135,15 @@ python3 tools/make_map.py testmap     # the engine tests' map
 
 A map is 48 rows of 64 legend characters followed by meta lines (`start`, `place`, `person`,
 `wander`). Ground and roads are passable: `.` ground, `=` road, `-` and `|` lane markings, `%`
-cracked road, `^` hot spot. Everything else blocks: `#` brick wall, `C` concrete, `W` broken window,
-`D` door, `R`/`E` tin roof and its edge, `F`/`V` chain-link fence, `+` fence post, `G` gate, `!`
-hazard sign, `o` barrel, `g` greenhouse glass, `*` plants, `[` `]` wrecked car, `P` pump, `S` market
-stall, `T` tent, `K` cart, `:` rubble, and `@` for the 6×4 reactor dome. The tool also writes each
-map's radiation field, place table and people table, and `tests/test_map_data.py` checks the map's
-rules: no hot spot ever cuts off part of the town, and everyone can be reached.
+cracked road, `^` hot spot, `,` and `'` cart tracks (across and down). Everything else blocks: `#`
+brick wall, `C` concrete, `W` broken window, `D` door, `R`/`E` tin roof and its edge, `F`/`V`
+chain-link fence, `+` fence post, `G` gate (Vesna opens it: each cell becomes the tile below it),
+`!` hazard sign, `o` barrel, `g` greenhouse glass, `*` plants, `[` `]` wrecked car, `P` pump, `S`
+market stall, `T` tent, `K` cart, `:` rubble, `Q` pipe, `Y` coolant valve, `H` service hatch, and
+`@` for the 6×4 reactor dome. The tool also writes each map's radiation field, place table, gate
+table and people table, and `tests/test_map_data.py` checks the map's
+rules: no hot spot ever cuts off part of the town, everyone can be reached, and the valve and
+hatch can only be reached through the open gate.
 
 **Portraits.** Each portrait is a 128×152 PNG in the C64 palette with at most two colours in every
 8×8 block, saved as `assets/<name>_c64_128x152.png`. Convert it with:

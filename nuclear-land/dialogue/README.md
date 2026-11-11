@@ -2,7 +2,8 @@
 
 The whole cast's conversations, one file per person, built into the game by
 `tools/make_dialogue.py` (it reads `dialogue/*.txt`). Written as a draft for review, then moved
-in as it was. The milestone 5 mechanics below aren't built yet.
+in as it was. Of the milestone 5 mechanics below, the skill lines are built (squad.asm); the way
+down the hatch and the ending aren't yet.
 
 ## How to read a script
 
@@ -55,7 +56,10 @@ Corwin's lies can be caught against the others:
 
 The script format doesn't express these. They're written here so the review covers the whole story.
 
-1. **Skill lines on the squad strip.** These are the message line in the HUD, 40 columns max.
+1. **Skill lines on the squad strip (built).** These are the message line in the HUD, 40 columns
+   max. TRACKS and TAPPED are in the keyword dictionary after every answer's word. U again at a
+   spot is harmless: the word is already known, or `the gate stands open.` / `the hatch stands
+   open.` Maren next to a treated Jory treats the squad.
 
    | Skill spot | Message | Effect |
    |---|---|---|
@@ -101,7 +105,8 @@ The script format doesn't express these. They're written here so the review cove
 - **Topics:** 155 across the 8 people. Hesper has the most at 27, under the limit of 32.
 - **Size:** about 14.7 KB of text plus 2.4 KB of tables. That and all eight portraits didn't fit
   in memory together, so portraits now load from disk when a conversation opens. With the whole
-  cast's dialogue built in, about 8 KB is left for milestone 5.
+  cast's dialogue built in, about 8 KB was left for milestone 5; after the skill spots, about
+  7 KB.
 - **Checks:** the draft passes all of the tool's own limits:
   - 24 columns per line;
   - 14 lines per answer;

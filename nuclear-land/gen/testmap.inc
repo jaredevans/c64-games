@@ -4,6 +4,10 @@ MAP_START_Y = 19
 PLACE_N = 2
 map_data !binary "gen/testmap.bin"
 map_rad !binary "gen/testmap_rad.bin"
+GATE_N = 0
+gate_x !byte 0
+gate_y !byte 0
+gate_open !byte 0
 place_x0 !byte 0, 0
 place_y0 !byte 0, 0
 place_x1 !byte 19, 63

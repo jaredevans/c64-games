@@ -4,6 +4,10 @@ MAP_START_Y = 24
 PLACE_N = 10
 map_data !binary "gen/cinderhill.bin"
 map_rad !binary "gen/cinderhill_rad.bin"
+GATE_N = 3
+gate_x !byte 31, 32, 33
+gate_y !byte 13, 13, 13
+gate_open !byte 67, 69, 67
 place_x0 !byte 22, 22, 1, 1, 1, 44, 13, 36, 44, 0
 place_y0 !byte 2, 14, 2, 8, 31, 2, 31, 31, 29, 0
 place_x1 !byte 43, 43, 20, 20, 12, 62, 35, 43, 62, 63

@@ -142,7 +142,40 @@ def main():
     check(all(mp[(y0 + r) * 64 + x0 + c] == tiles[f'T_DOME_{r}{c}'] for r in range(4) for c in range(6)),
           'cinderhill: dome cells in picture order')
 
+    # M5 skill spots. Dials's valve and hatch are behind the dome, inside the compound: reachable
+    # only through the open gate, each with a free side, and no cell is beside both (U there would be
+    # ambiguous). Rook's cart tracks are outside the back fence, reachable with the gate shut.
+    shut, opened = reach(), reach(gate_open=True)
+
+    def cells(t):
+        return [(i % 64, i // 64) for i, c in enumerate(mp) if c == tiles[t]]
+
+    def sides(c):
+        return [(c[0] + d[0], c[1] + d[1]) for d in ((0, -1), (0, 1), (-1, 0), (1, 0))]
+    valve, hatch, ruts = cells('T_VALVE'), cells('T_HATCH'), cells('T_RUTS_H') + cells('T_RUTS_V')
+    check(len(valve) == 1 and len(hatch) == 1, f'cinderhill: one valve {valve}, one hatch {hatch}')
+    for what, c in (('valve', valve[0]), ('hatch', hatch[0])):
+        check(blocked(*c) and not any(n in shut for n in sides(c)) and any(n in opened for n in sides(c)),
+              f'cinderhill: the {what} at {c} is blocked and reachable only through the open gate')
+    check(not set(sides(valve[0])) & set(sides(hatch[0])), 'cinderhill: no cell is beside both valve and hatch')
+    check(len(ruts) >= 8 and all(not blocked(*c) and c in shut for c in ruts),
+          f'cinderhill: {len(ruts)} cart-track cells, all passable and reachable with the gate shut')
+    check(valve[0][1] - 1 == min(y for _, y in ruts) + 1, 'cinderhill: the tracks run just outside the back fence')
+    mi = inc_consts(NL / 'gen' / 'cinderhill.inc')
+    gates = cells('T_GATE')
+    check(mi['GATE_N'] == len(gates) == 3, f'cinderhill: GATE_N = {mi["GATE_N"]} gate cells')
+    gtext = (NL / 'gen' / 'cinderhill.inc').read_text()
+    want_x = 'gate_x !byte ' + ', '.join(str(x) for x, _ in gates)
+    want_y = 'gate_y !byte ' + ', '.join(str(y) for _, y in gates)
+    want_t = 'gate_open !byte ' + ', '.join(str(mp[(y + 1) * 64 + x]) for x, y in gates)
+    check(want_x in gtext and want_y in gtext and want_t in gtext and
+          all(mp[(y + 1) * 64 + x] < tiles['BLOCK_BASE'] for x, y in gates),
+          'cinderhill: gate table - each gate cell opens to the passable tile below it')
+    brandt = next(p for p in people if p['letter'] == 'b')
+    check(any(n in shut for n in sides((brandt['x'], brandt['y']))), 'cinderhill: Brandt has a free side outside the gate')
+
     meta, mp, hot, *_ = check_map('testmap')
+    check(inc_consts(NL / 'gen' / 'testmap.inc')['GATE_N'] == 0, 'testmap: no gate (GATE_N = 0)')
     check(hot == {(10, 21), (11, 21)} and tuple(meta['start']) == (29, 19) and meta['people'] == [],
           'testmap: hot tiles (10,21),(11,21), start (29,19), nobody else')
 

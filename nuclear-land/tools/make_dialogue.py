@@ -27,6 +27,7 @@ TIERS = ['WARY', 'GUARDED', 'OPEN', 'FRIENDLY']
 MEMBERS = ['VESNA', 'DIALS', 'MAREN', 'ROOK']
 CAST = 'hbtjopcv'                       # cast index order (make_map CAST, then Voss)
 INITIAL_KNOWN = ['NAME', 'JOB', 'REACTOR', 'VOSS']
+SKILL_KNOWN = ['TRACKS', 'TAPPED']      # found by the squad's skills (squad.asm), not in any answer
 WIDTH = 24
 MAX_LINES = 15          # the conversation area: an answer plus its question line must fit
 MAX_TOPICS = 32         # talkrules.asm keeps 32 asked-bits per person
@@ -132,6 +133,9 @@ def parse_all(src=None):
             for w in p['topics'][name]['reveals']:
                 if w not in keywords:
                     keywords.append(w)
+    for w in SKILL_KNOWN:
+        assert w not in keywords, f'{w} is a skill-spot word: no answer may reveal it'
+        keywords.append(w)
     return people, keywords
 
 
@@ -160,7 +164,9 @@ def build(src=None, out=None):
          'DLG_NAME = 0', 'DLG_ROLE = 2', 'DLG_START = 4', 'DLG_FAVOUR = 5', 'DLG_NKEYS = 6',
          'DLG_NTOPICS = 7', 'DLG_GREET = 8', 'DLG_DEFLECT = 10', 'DLG_UNKNOWN = 12', 'DLG_KEYS = 14',
          'DLG_TOPICS = 16', 'KEY_SIZE = 6', 'TOPIC_SIZE = 7', 'TOPIC_TIER = 0', 'TOPIC_SAY = 1',
-         'TOPIC_ELSE = 3', 'TOPIC_REVEAL = 5', 'kw_text']
+         'TOPIC_ELSE = 3', 'TOPIC_REVEAL = 5']
+    a += [f'KW_{w} = {i}' for i, w in enumerate(keywords)]
+    a.append('kw_text')
     for w in keywords:
         codes = upper_codes(w)[:12]
         a.append('        !byte ' + ', '.join(str(c) for c in codes + [0] * (12 - len(codes))))

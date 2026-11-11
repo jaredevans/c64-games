@@ -32,6 +32,10 @@ squad_init
         sta act_prev
         sta act_pending
         jsr leader_colour
+!ifdef KNOW_HATCH {             ; tests/test_skills.py: the squad already knows Pip's word
+        lda #KW_HATCH
+        jsr known_add
+}
         lda #<msg_arrive
         ldx #>msg_arrive
         jmp msg_set
@@ -49,9 +53,10 @@ squad_act
         stx act_pending
         inc actions_done
         cmp #ACT_TALK
+        bcc +
         beq act_talk
-        bcs act_use
-        jmp act_lead
+        jmp act_use
++       jmp act_lead
 .out    rts
 
 ; act_lead: A = member to lead
@@ -77,22 +82,8 @@ act_lead
 ; act_talk: the first person next to the leader (up, down, left, right) becomes the talk target
 !zone act_talk
 act_talk
-        ldy #0
-.dir    lda leader_x
-        clc
-        adc dir_dx,y
-        sta zp_tmp
-        lda leader_y
-        clc
-        adc dir_dy,y
-        sta zp_row
-        sty pp_dir
-        jsr person_at
+        jsr adjacent_person
         bcs .found
-        ldy pp_dir
-        iny
-        cpy #4
-        bne .dir
         lda #$ff
         sta talk_target
         lda #<msg_nobody
@@ -115,19 +106,247 @@ act_talk
         ldx #>msg_nothing_yet
         jmp msg_add
 
-; act_use: the leader's skill. Only Maren's heal does anything in M2 (Task 6); the others report
-; that there is nothing here for them.
+; adjacent_person: C=1 and X = people index of the first person next to the leader (up, down,
+; left, right); C=0 if nobody. Clobbers A, Y, zp_tmp, zp_row.
+!zone adjacent_person
+adjacent_person
+        ldy #0
+.dir    lda leader_x
+        clc
+        adc dir_dx,y
+        sta zp_tmp
+        lda leader_y
+        clc
+        adc dir_dy,y
+        sta zp_row
+        sty pp_dir
+        jsr person_at
+        bcs .out
+        ldy pp_dir
+        iny
+        cpy #4
+        bne .dir
+        clc
+.out    rts
+
+; act_use: the leader's skill (U). Each skill works at its own spots and says so on the message
+; line; anywhere else it reports that there is nothing here for it. Every spot can be used again:
+; the Known list holds a word once, and an open gate or hatch says it stands open.
+;   Vesna next to Brandt     the gate opens, Brandt is met at Open
+;   Dials beside the valve   TAPPED joins Known
+;   Dials beside the hatch   with HATCH known: forced open (the way down, next)
+;   Maren next to Jory       his fever is treated once, he is met at Open; otherwise the squad heal
+;   Rook on the cart tracks  TRACKS joins Known
+CAST_BRANDT = 1                 ; cast indexes (tools/make_map.py CAST)
+CAST_JORY   = 3
+OPEN        = 2                 ; trust tier
+
 !zone act_use
 act_use
-        ldx leader
-        cpx #2
-        beq maren_use
-        lda skill_msg_lo,x
-        pha
-        lda skill_msg_hi,x
-        tax
-        pla
+        lda leader
+        beq vesna_use
+        cmp #1
+        beq dials_use
+        cmp #2
+        bne rook_use
+        jmp maren_use
+
+!zone rook_use
+rook_use
+        lda #T_RUTS_H
+        jsr on_tile
+        bcs .found
+        lda #T_RUTS_V
+        jsr on_tile
+        bcs .found
+        lda #<msg_skill_r
+        ldx #>msg_skill_r
         jmp msg_set
+.found  lda #KW_TRACKS
+        jsr known_add
+        lda #<msg_tracks
+        ldx #>msg_tracks
+        jmp msg_set
+
+!zone vesna_use
+vesna_use
+        jsr adjacent_person
+        bcc .none
+        lda people_cast,x
+        cmp #CAST_BRANDT
+        bne .none
+        lda gate_opened
+        beq +
+        lda #<msg_gate_open
+        ldx #>msg_gate_open
+        jmp msg_set
++       lda #1
+        sta gate_opened
+        ldx #CAST_BRANDT
+        jsr meet_open
+        jsr open_gate
+        lda #<msg_persuade
+        ldx #>msg_persuade
+        jmp msg_set
+.none   lda #<msg_skill_v
+        ldx #>msg_skill_v
+        jmp msg_set
+
+!zone dials_use
+dials_use
+        lda #T_VALVE
+        jsr near_tile
+        bcc .hatch
+        lda #KW_TAPPED
+        jsr known_add
+        lda #<msg_tapped
+        ldx #>msg_tapped
+        jmp msg_set
+.hatch  lda #T_HATCH_OPEN
+        jsr near_tile
+        bcc +
+        lda #<msg_hatch_open
+        ldx #>msg_hatch_open
+        jmp msg_set
++       lda #T_HATCH
+        jsr near_tile
+        bcc .none
+        lda #KW_HATCH           ; Pip's word for it: without it Dials doesn't know to look
+        jsr known_has
+        bcc .none
+        lda #1
+        sta hatch_opened
+        lda #T_HATCH_OPEN
+        jsr cell_set
+        lda #<msg_forced
+        ldx #>msg_forced
+        jmp msg_set
+.none   lda #<msg_skill_d
+        ldx #>msg_skill_d
+        jmp msg_set
+
+; meet_open: cast member X counts as met, at Open trust or better (talk_meet then leaves them be)
+meet_open
+        lda #1
+        sta met,x
+        lda trust,x
+        cmp #OPEN
+        bcs +
+        lda #OPEN
+        sta trust,x
++       rts
+
+; open_gate: every gate cell becomes the passable tile below it (gen/<map>.inc gate table)
+!zone open_gate
+open_gate
+        ldx #0
+.g      cpx #GATE_N
+        bcs .out
+        stx og_i
+        lda gate_x,x
+        sta zp_tmp
+        lda gate_y,x
+        sta zp_row
+        lda gate_open,x
+        jsr cell_set
+        ldx og_i
+        inx
+        bne .g
+.out    rts
+
+; on_tile: C=1 if the leader stands on tile A. Clobbers A, Y, zp_tmp, zp_row, zp_src.
+on_tile
+        sta nt_code
+        lda leader_x
+        sta zp_tmp
+        lda leader_y
+        sta zp_row
+        jsr map_cell_ptr
+        ldy #0
+        lda (zp_src),y
+        cmp nt_code
+        beq +
+        clc
+        rts
++       sec
+        rts
+
+; near_tile: C=1 and (zp_tmp, zp_row) = the cell if tile A is next to the leader (up, down, left,
+; right). Clobbers A, Y, zp_src.
+!zone near_tile
+near_tile
+        sta nt_code
+        ldy #0
+.dir    lda leader_x
+        clc
+        adc dir_dx,y
+        sta zp_tmp
+        lda leader_y
+        clc
+        adc dir_dy,y
+        sta zp_row
+        sty nt_dir
+        jsr map_cell_ptr
+        ldy #0
+        lda (zp_src),y
+        ldy nt_dir
+        cmp nt_code
+        beq .yes
+        iny
+        cpy #4
+        bne .dir
+        clc
+        rts
+.yes    sec
+        rts
+
+; cell_set: map cell (zp_tmp, zp_row) becomes tile A, and so does the screen on show (character and
+; colour) if the cell is in view. The hidden buffer is rebuilt from the map on the next step, and
+; talk_leave redraws from it, so the change stays. Only called while the leader stands still.
+!zone cell_set
+cell_set
+        sta cs_code
+        jsr map_cell_ptr
+        ldy #0
+        lda cs_code
+        sta (zp_src),y
+        lda zp_tmp
+        sec
+        sbc cam_x
+        cmp #VIEW_COLS
+        bcs .out
+        sta cs_col
+        lda zp_row
+        sec
+        sbc cam_y
+        cmp #MAP_ROWS
+        bcs .out
+        clc
+        adc #ROW_MAP
+        tax
+        lda row_off_lo,x
+        clc
+        adc cs_col
+        sta zp_dst
+        sta zp_col
+        lda row_off_hi,x
+        adc #0
+        tay
+        clc
+        adc #>COLRAM
+        sta zp_col+1
+        tya
+        ldx vis_buf
+        clc
+        adc screen_page_tbl,x
+        sta zp_dst+1
+        ldy #0
+        lda cs_code
+        sta (zp_dst),y
+        tax
+        lda tilecolors,x
+        sta (zp_col),y
+.out    rts
 
 !zone maren_use
 maren_use
@@ -136,7 +355,21 @@ maren_use
         lda #<msg_maren_sick
         ldx #>msg_maren_sick
         jmp msg_set
-+       jsr leader_rad
++       lda jory_treated        ; next to an untreated Jory: treat his fever
+        bne .squad
+        jsr adjacent_person
+        bcc .squad
+        lda people_cast,x
+        cmp #CAST_JORY
+        bne .squad
+        lda #1
+        sta jory_treated
+        ldx #CAST_JORY
+        jsr meet_open
+        lda #<msg_jory
+        ldx #>msg_jory
+        jmp msg_set
+.squad  jsr leader_rad
         cmp #8
         bne +
         lda #<msg_too_hot
@@ -270,8 +503,6 @@ name_vesna !scr "vesna", 0
 name_dials !scr "dials", 0
 name_maren !scr "maren", 0
 name_rook  !scr "rook", 0
-skill_msg_lo !byte <msg_skill_v, <msg_skill_d, 0, <msg_skill_r
-skill_msg_hi !byte >msg_skill_v, >msg_skill_d, 0, >msg_skill_r
 
 msg_arrive        !scr "the squad arrives in cinderhill.", 0
 msg_takes_lead    !scr " takes the lead.", 0
@@ -287,6 +518,13 @@ msg_treats        !scr "maren treats the squad.", 0
 msg_rest          !scr "maren needs to rest first.", 0
 msg_too_hot       !scr "too hot here to treat anyone.", 0
 msg_maren_sick    !scr "maren is too sick to help.", 0
+msg_tracks        !scr "rook: cart tracks lead to the storehouse", 0
+msg_persuade      !scr "vesna talks brandt into opening up.", 0
+msg_gate_open     !scr "the gate stands open.", 0
+msg_tapped        !scr "dials: someone tapped the coolant line!", 0
+msg_forced        !scr "dials forces the hatch. stairs go down.", 0
+msg_hatch_open    !scr "the hatch stands open.", 0
+msg_jory          !scr "maren treats jory's fever.", 0
 
 squad_hp     !fill 4, HP_MAX
 leader       !byte 0
@@ -297,5 +535,13 @@ heal_cool    !byte 0
 maren_rec    !byte 0
 hot_steps    !byte 0
 heals_done   !byte 0
+gate_opened  !byte 0
+hatch_opened !byte 0
+jory_treated !byte 0
+nt_code      !byte 0
+nt_dir       !byte 0
+cs_code      !byte 0
+cs_col       !byte 0
+og_i         !byte 0
 msg_len      !byte 0
 msg_buf      !fill 40, ' '
