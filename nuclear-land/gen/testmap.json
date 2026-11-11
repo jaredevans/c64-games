@@ -1,0 +1,34 @@
+{
+ "start": [
+  29,
+  19
+ ],
+ "people": [],
+ "places": [
+  {
+   "name": "WEST SIDE",
+   "rect": [
+    0,
+    0,
+    19,
+    47
+   ]
+  },
+  {
+   "name": "TEST MAP",
+   "rect": null
+  }
+ ],
+ "hot": [
+  [
+   10,
+   21
+  ],
+  [
+   11,
+   21
+  ]
+ ],
+ "n_passable": 16,
+ "n_blocked": 45
+}
