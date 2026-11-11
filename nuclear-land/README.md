@@ -43,12 +43,28 @@ strip, the camera stopping at the map edges, a steady 50 fps (PAL).
   way. Pip wanders Market Row.
 - A status line naming the district you're in, with a Geiger meter that rises near hot spots.
 - A squad strip with the leader marked, health bars, and a message line.
-- Keys **1–4** switch the leader, and the squad figure takes the leader's colour. **T** next to a
-  person picks them to talk to (the talking screen comes next).
+- Keys **1–4** switch the leader, and the squad figure takes the leader's colour.
 - Glowing hot spots drain everyone's health. A member at zero is sick and can't lead. With Maren
-  leading, **U** treats the squad, and she recovers by herself away from radiation. Nobody dies.
+  leading, **U** treats the squad, and a sick Maren slowly recovers away from radiation. Nobody dies.
 
-**Next:** the talking screen, with Hesper's conversation and portrait.
+**Milestone 3: talking to Hesper (done).** Press **T** next to Hesper, the water-keeper in front of
+the Market Row pump house, and the screen changes:
+
+- Hesper's portrait sits on the left, as a full-resolution hi-res bitmap.
+- On the right are the name, a trust meter and the running conversation, drawn in the C64's own
+  upper/lower-case font. Your words are in yellow, the answers in grey, and long talks scroll.
+- At the bottom: the Known keywords, who leads, and a prompt. Type any word and press RETURN. The
+  first 4 letters are enough, so WATE finds WATER.
+- Hesper starts wary and deflects some questions. Trust grows with each new topic answered, faster
+  if Maren leads. If Vesna leads at the first meeting, Hesper starts one step friendlier. With
+  enough trust, Hesper shares a clue.
+- Words in CAPITALS in an answer join the squad's Known list.
+- RETURN on an empty line takes you back to the town exactly as you left it, and Hesper remembers
+  you.
+
+The other townspeople don't talk yet; T next to them still says so.
+
+**Next:** dialogue for the whole cast, written out for review before it goes in.
 
 ## Running it
 
@@ -73,6 +89,7 @@ set to NTSC.
 | `1` `2` `3` `4` | Choose the leader: Vesna, Dials, Maren, Rook |
 | `T` | Talk to the person next to you |
 | `U` | Use the leader's skill (Maren: treat the squad) |
+| Letters, `DEL`, `RETURN` | While talking: type a keyword (up to 12 letters) and ask; `RETURN` on an empty line leaves |
 
 Both sets of movement keys always work. There is no joystick support.
 
@@ -94,6 +111,28 @@ hazard sign, `o` barrel, `g` greenhouse glass, `*` plants, `[` `]` wrecked car, 
 stall, `T` tent, `K` cart, `:` rubble, and `@` for the 6×4 reactor dome. The tool also writes each
 map's radiation field, place table and people table, and `tests/test_map_data.py` checks the map's
 rules: no hot spot ever cuts off part of the town, and everyone can be reached.
+
+**Portraits.** Each portrait is a 128×152 PNG in the C64 palette with at most two colours in every
+8×8 block, saved as `assets/<name>_c64_128x152.png`. Convert it with:
+
+```sh
+python3 tools/make_portrait.py hesper warden
+```
+
+The converter maps every pixel to the nearest C64 colour. In any block that has more than two, it
+keeps the two most common, and it reports how many blocks it had to change.
+
+**Dialogue.** Each person's conversation is a plain text file in `dialogue/`, for example
+`dialogue/hesper.txt`. It sets their name, role, starting trust and favourite squad member, and
+lists topics, each with a keyword, a minimum trust tier, the answer, and an optional deflection.
+The format is described at the top of `tools/make_dialogue.py`. Rebuild with:
+
+```sh
+python3 tools/make_dialogue.py
+```
+
+`tests/talksim.py` holds the same conversation rules in Python, and the talking-screen tests compare
+the game against it.
 
 ## Tests
 
@@ -123,6 +162,9 @@ add load so every frame of a glide can be checked.
 | `squad.asm` | Health, leader, actions, radiation, healing, messages |
 | `hud.asm` | Squad strip: names, health bars, message line |
 | `charset.asm` | Builds the character set (ROM font + tiles) |
+| `talk.asm` | Talking screen: entering, the portrait, the raster split, leaving |
+| `talktext.asm` | Bitmap text: the font, header, trust meter, scrolling conversation, typing |
+| `talkrules.asm` | Keyword matching, trust tiers, the Known list |
 | `hw.inc` | Hardware registers and memory map |
 
 - **Memory:** VIC bank 3 — two screen buffers at `$C000` / `$C400`, the character set at
@@ -133,6 +175,11 @@ add load so every frame of a glide can be checked.
 - **Split screen:** a three-stage raster interrupt chain runs the status line and HUD at
   40 columns with no scroll, and the map band in between at 38 columns with the frame's fine
   scroll.
+- **Talking screen:** it runs its own two-interrupt raster chain. Rows 0–18 are a hi-res bitmap
+  at `$E000`, with cell colours at `$C000`. Rows 19–23 are text, switched over at the end of
+  raster line 202. The bitmap sits under the KERNAL ROM, where the CPU can write but can't read
+  back, so the conversation is kept in RAM and redrawn when it scrolls. Leaving rebuilds the
+  walking screen from the game state.
 - **Vertical scrolling:** uses FLD — badlines are only ever *delayed*, never brought forward, so
   rows never get fetched twice and the HUD never slips. The map shows through a fixed window
   (raster lines 74–210), so its top and bottom edges don't bounce as it scrolls.
