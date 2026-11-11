@@ -6,7 +6,13 @@ Output (2736 bytes): 2432 bitmap bytes in cell order (row 0..18, column 0..15, 8
 pixel row first, bit 7 = leftmost pixel = foreground), then 304 colour bytes, one per cell,
 (fg << 4) | bg - the hi-res bitmap's screen-RAM format.
 
-Usage: python3 tools/make_portrait.py hesper warden"""
+Eyes: assets/<name>_eyes_128x152.png (same frame, black = nothing) holds the eye whites and irises,
+which a hi-res cell can't (skin, black and white in one 8x8 cell). It becomes gen/eyes_<name>.bin:
+hardware sprites drawn over the portrait, one per eye and colour, at most EYE_SPRITES. Format: 1 byte
+sprite count, then per sprite x, y (portrait pixel of the sprite's top-left), colour, 0, and 64 bytes
+of sprite data (21 rows x 3 bytes, bit 7 = leftmost pixel, then a pad byte).
+
+Usage: python3 tools/make_portrait.py hesper Ilse-Brandt"""
 import sys
 from collections import Counter
 from pathlib import Path
@@ -19,6 +25,8 @@ from c64render import PALETTE, nearest_index  # noqa: E402
 
 W, H = 128, 152
 COLS, ROWS = W // 8, H // 8
+EYE_SPRITES = 4
+SPR_W, SPR_H = 24, 21
 
 
 def _dist(a, b):
@@ -71,7 +79,58 @@ def render(data):
     return out
 
 
+def convert_eyes(png_path, out_path):
+    """The eyes layer -> sprite data (format in the module docstring). Returns the sprite count."""
+    im = Image.open(png_path).convert('RGB')
+    if im.size != (W, H):
+        raise ValueError(f'{png_path}: {im.size[0]}x{im.size[1]}, eyes must be {W}x{H}')
+    by_colour = {}
+    for y in range(H):
+        for x in range(W):
+            i = nearest_index(im.getpixel((x, y)))
+            if i:
+                by_colour.setdefault(i, []).append((x, y))
+    sprites = []
+    for colour in sorted(by_colour):
+        group = []
+        for x, y in sorted(by_colour[colour]):              # left to right: a new sprite every 24 px
+            if group and x - group[0][0] >= SPR_W:
+                sprites.append((colour, group))
+                group = []
+            group.append((x, y))
+        sprites.append((colour, group))
+    if len(sprites) > EYE_SPRITES:
+        raise ValueError(f'{png_path}: needs {len(sprites)} sprites, at most {EYE_SPRITES}')
+    out = bytearray([len(sprites)])
+    for colour, group in sprites:
+        x0, y0 = group[0][0], min(y for _, y in group)
+        if max(y for _, y in group) - y0 >= SPR_H:
+            raise ValueError(f'{png_path}: colour {colour} is taller than a sprite ({SPR_H} px)')
+        data = bytearray(64)
+        for x, y in group:
+            dx, dy = x - x0, y - y0
+            data[dy * 3 + dx // 8] |= 0x80 >> (dx % 8)
+        out += bytes([x0, y0, colour, 0]) + data
+    Path(out_path).write_bytes(bytes(out))
+    return len(sprites)
+
+
+def render_eyes(data):
+    """{(x, y): colour} of the pixels the eye sprites draw over the portrait."""
+    px = {}
+    for s in range(data[0]):
+        rec = data[1 + s * 68: 1 + (s + 1) * 68]
+        x0, y0, colour = rec[0], rec[1], rec[2]
+        for dy in range(SPR_H):
+            for dx in range(SPR_W):
+                if rec[4 + dy * 3 + dx // 8] & (0x80 >> (dx % 8)):
+                    px[(x0 + dx, y0 + dy)] = colour
+    return px
+
+
 if __name__ == '__main__':
     for name in sys.argv[1:]:
         info = convert(NL / 'assets' / f'{name}_c64_128x152.png', NL / 'gen' / f'portrait_{name}.bin')
-        print(f'{name}: {info["cells_reduced"]} cells reduced to 2 colours')
+        eyes = NL / 'assets' / f'{name}_eyes_128x152.png'
+        n = convert_eyes(eyes, NL / 'gen' / f'eyes_{name}.bin') if eyes.exists() else 0
+        print(f'{name}: {info["cells_reduced"]} cells reduced to 2 colours, {n} eye sprites')

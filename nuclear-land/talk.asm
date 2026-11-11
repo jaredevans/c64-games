@@ -6,6 +6,9 @@
 ; the input prompt, a hint. Its own raster chain switches modes at the end of raster line 202 (in
 ; the right border), so the row-19 badline on line 203 already fetches text.
 ;
+; The portrait's eye whites and irises are hardware sprites over the bitmap (a hi-res cell can't
+; hold skin, black and white): see eyes_setup.
+;
 ; Entering trashes the walking screen buffers and the sprite shapes ($E000 is the bitmap);
 ; talk_leave rebuilds everything from game state.
 
@@ -16,6 +19,8 @@ D011_BMP     = %00111011        ; BMM, DEN, RSEL, YSCROLL 3
 D011_TXT     = %00011011
 D011_OFF     = %00001011        ; display off (border colour), RSEL, YSCROLL 3
 D018_TALKBMP = ((SCREEN_A - VIC_BANK) / $400) << 4 | %1000     ; cells $C000, bitmap $E000
+EYE_SPR_MEM  = SCREEN_B         ; eye sprites: rows 0-18 of the text screen are never shown while talking
+EYE_SPR_PTR  = (EYE_SPR_MEM - VIC_BANK) / 64
 TALK_IRQ_TOP = 16
 TALK_IRQ_SPLIT = 200
 TALK_SPLIT_LINE = 202
@@ -54,6 +59,7 @@ talk_enter
         lda #>TALK_TEXT
         jsr clear_screen
         jsr portrait_blit
+        jsr eyes_setup
         jsr talk_meet
         jsr talk_header
         jsr conv_reset          ; the greeting opens the conversation
@@ -392,6 +398,7 @@ talk_leave
         jsr view_draw_full
         jsr status_init
         jsr sprites_restore
+        jsr eyes_restore
         lda #<msg_leave
         ldx #>msg_leave
         jsr msg_set
@@ -445,15 +452,123 @@ sprites_restore
         bne -
 +       rts
 
+; eyes_setup: the talk person's eye sprites (gen/eyes_<name>.bin: count, then per sprite x, y,
+; colour, 0 and 64 bytes of data; x, y are portrait pixels). Saves the walking screen's sprite
+; registers first (eyes_restore puts them back). Sets talk_spren, which talk_irq_top enables.
+!zone eyes_setup
+eyes_setup
+        ldx #16
+-       lda VIC_SPR0X,x         ; $D000-$D010: positions and X MSBs
+        sta spr_save,x
+        dex
+        bpl -
+        ldx #7
+-       lda VIC_SPR0COL,x
+        sta spr_save_col,x
+        dex
+        bpl -
+        lda VIC_SPRMC
+        sta spr_save_mc
+        lda #0
+        sta talk_spren
+        sta VIC_SPRMSB
+        sta VIC_SPRMC
+        sta VIC_SPRXEXP
+        sta VIC_SPRYEXP
+        sta VIC_SPRPRI          ; in front of the bitmap
+        ldx talk_person
+        lda eyes_hi,x
+        beq .out                ; no eyes for this person
+        sta zp_src+1
+        lda eyes_lo,x
+        sta zp_src
+        ldy #0
+        lda (zp_src),y
+        sta eye_n
+        inc zp_src
+        bne +
+        inc zp_src+1
++       ldx #0
+.spr    cpx eye_n
+        beq .out
+        stx eye_i
+        txa
+        asl
+        tax                     ; X = 2 * sprite
+        ldy #0
+        lda (zp_src),y
+        clc
+        adc #24                 ; VIC X of bitmap column 0
+        sta VIC_SPR0X,x
+        iny
+        lda (zp_src),y
+        clc
+        adc #50                 ; VIC Y of bitmap row 0
+        sta VIC_SPR0Y,x
+        ldx eye_i
+        iny
+        lda (zp_src),y
+        sta VIC_SPR0COL,x
+        txa
+        clc
+        adc #EYE_SPR_PTR
+        sta SCREEN_A + $3f8,x
+        lda eye_mem_lo,x
+        sta zp_dst
+        lda #>EYE_SPR_MEM
+        sta zp_dst+1
+        lda zp_src              ; skip x, y, colour, pad
+        clc
+        adc #4
+        sta zp_src
+        bcc +
+        inc zp_src+1
++       ldy #63
+-       lda (zp_src),y
+        sta (zp_dst),y
+        dey
+        bpl -
+        lda zp_src
+        clc
+        adc #64
+        sta zp_src
+        bcc +
+        inc zp_src+1
++       lda talk_spren
+        ora eye_bit,x
+        sta talk_spren
+        inx
+        bne .spr
+.out    rts
+
+; eyes_restore: the walking screen's sprite registers, as eyes_setup found them
+!zone eyes_restore
+eyes_restore
+        ldx #16
+-       lda spr_save,x
+        sta VIC_SPR0X,x
+        dex
+        bpl -
+        ldx #7
+-       lda spr_save_col,x
+        sta VIC_SPR0COL,x
+        dex
+        bpl -
+        lda spr_save_mc
+        sta VIC_SPRMC
+        lda spr_enable
+        sta VIC_SPREN
+        rts
+
 ; ---- raster chain while talking ----
-talk_irq_top                    ; line 16: bitmap mode for rows 0-18, no sprites
+talk_irq_top                    ; line 16: bitmap mode for rows 0-18, only the eye sprites
         lda #D011_BMP
         sta VIC_CTRL1
         lda #D016_STD
         sta VIC_CTRL2
         lda #D018_TALKBMP
         sta VIC_MEM
-        lda #0
+        lda talk_spren
         sta VIC_SPREN
         lda #<talk_irq_split
         sta $0314
@@ -540,6 +655,17 @@ ts_text
 portrait_lo !byte <portrait_hesper, 0, 0, 0, 0, 0, 0, 0     ; by cast index
 portrait_hi !byte >portrait_hesper, 0, 0, 0, 0, 0, 0, 0
 portrait_hesper !binary "gen/portrait_hesper.bin"
+eyes_lo     !byte <eyes_hesper, 0, 0, 0, 0, 0, 0, 0             ; by cast index; hi 0 = no eyes
+eyes_hi     !byte >eyes_hesper, 0, 0, 0, 0, 0, 0, 0
+eyes_hesper !binary "gen/eyes_hesper.bin"
+eye_mem_lo  !byte 0, 64, 128, 192
+eye_bit     !byte 1, 2, 4, 8
+eye_n       !byte 0
+eye_i       !byte 0
+talk_spren  !byte 0
+spr_save    !fill 17, 0
+spr_save_col !fill 8, 0
+spr_save_mc !byte 0
 txt_known  !scr "known: ", 0
 txt_leads  !scr " leads. ask about:", 0
 txt_hint   !scr "return on an empty line: leave          "

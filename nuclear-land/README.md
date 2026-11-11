@@ -116,11 +116,20 @@ rules: no hot spot ever cuts off part of the town, and everyone can be reached.
 8×8 block, saved as `assets/<name>_c64_128x152.png`. Convert it with:
 
 ```sh
-python3 tools/make_portrait.py hesper warden
+python3 tools/make_portrait.py hesper Ilse-Brandt
 ```
 
 The converter maps every pixel to the nearest C64 colour. In any block that has more than two, it
 keeps the two most common, and it reports how many blocks it had to change.
+
+A cell can't hold skin, black and white at once, so each portrait's eye whites and irises are a
+second layer, `assets/<name>_eyes_128x152.png`. The same command turns it into `gen/eyes_<name>.bin`:
+up to four white and coloured hardware sprites that the talking screen draws over the bitmap. The
+talking screen saves the walking screen's sprite registers and puts them back on leaving.
+
+Both PNGs are made from the painted sources in `assets/original/` by
+`assets/original/convert_c64.py`, which has one settings block per character. It writes 4x
+previews of the finished faces, eyes included, to `assets/original/c64_preview/`.
 
 **Dialogue.** Each person's conversation is a plain text file in `dialogue/`, for example
 `dialogue/hesper.txt`. It sets their name, role, starting trust and favourite squad member, and

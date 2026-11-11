@@ -1,5 +1,5 @@
 """M3 Task 3 / Review Focus 4: T next to Hesper opens the talking screen - her portrait pixel-exact in
-the top-left 16x19 cells (hi-res bitmap), the text rows below - and the bitmap/text boundary (screen
+the top-left 16x19 cells (hi-res bitmap, eye whites and irises as sprites on top), the text rows below - and the bitmap/text boundary (screen
 row 18 -> 19) is exact and steady on every frame."""
 import sys
 from pathlib import Path
@@ -30,11 +30,13 @@ def main():
     vice.check(rows[80:120].startswith(vice.scr('DIALS LEADS. ASK ABOUT:')), f'row 21: {rows[80:120]!r}')
     vice.check(rows[120:122] == vice.scr('> '), f'row 22 prompt: {rows[120:122]!r}')
     portrait = make_portrait.render((vice.NL / 'gen' / 'portrait_hesper.bin').read_bytes())
+    for (x, y), c in make_portrait.render_eyes((vice.NL / 'gen' / 'eyes_hesper.bin').read_bytes()).items():
+        portrait[y][x] = c                                  # the eye sprites, drawn over the bitmap
     shot = vice.screenshot(prg, AT)
     shot.save(vice.BUILD / 'talk_screen.png')
     x0, y0 = vice.screen_box(shot)
     got = [[nearest_index(shot.getpixel((x0 + x, y0 + y))) for x in range(128)] for y in range(152)]
-    vice.check(got == portrait, "Hesper's portrait pixel-exact in the top-left 16x19 cells")
+    vice.check(got == portrait, "Hesper's portrait and eye sprites pixel-exact in the top-left 16x19 cells")
     known = text_row_pixels(charset, 'KNOWN: NAME JOB REACTOR VOSS', LGREY)
     bad = 0
     for k in range(16):

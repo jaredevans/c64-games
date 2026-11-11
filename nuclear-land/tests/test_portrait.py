@@ -16,7 +16,7 @@ WHITE, RED, BLUE = 1, 2, 6
 
 
 def main():
-    for name in ('hesper', 'warden'):
+    for name in ('hesper', 'Ilse-Brandt'):
         out = NL / 'gen' / f'portrait_{name}.bin'
         src = NL / 'assets' / f'{name}_c64_128x152.png'
         info = make_portrait.convert(src, out)
@@ -26,6 +26,13 @@ def main():
         im = Image.open(src).convert('RGB')
         want = [[nearest_index(im.getpixel((x, y))) for x in range(128)] for y in range(152)]
         check(make_portrait.render(data) == want, f'{name}: converted portrait renders pixel-exact')
+        eyes_png = NL / 'assets' / f'{name}_eyes_128x152.png'
+        eyes_out = NL / 'gen' / f'eyes_{name}.bin'
+        n = make_portrait.convert_eyes(eyes_png, eyes_out)
+        check(1 <= n <= make_portrait.EYE_SPRITES, f'{name}: {n} eye sprites (1-{make_portrait.EYE_SPRITES})')
+        em = Image.open(eyes_png).convert('RGB')
+        want_eyes = {(x, y): i for y in range(152) for x in range(128) if (i := nearest_index(em.getpixel((x, y))))}
+        check(make_portrait.render_eyes(eyes_out.read_bytes()) == want_eyes, f'{name}: eye sprites draw the eyes layer exactly')
 
     with tempfile.TemporaryDirectory() as td:
         im = Image.new('RGB', (128, 152), PALETTE[0])
