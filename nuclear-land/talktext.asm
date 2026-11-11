@@ -410,14 +410,6 @@ talk_key
         sta input_len
         jmp prompt_draw
 
-; talk_ask: answer the word in input_buf/input_len (Task 5 replaces this stub: always "unknown")
-talk_ask
-        ldy #DLG_UNKNOWN
-        jsr dlg_word_to_txt
-        lda #COL_LGREY
-        sta bm_fg
-        jmp conv_lines
-
 ; ---- data ----
 bmrow_lo !for r, 0, 19 { !byte <(TALK_BITMAP + r*320) }
 bmrow_hi !for r, 0, 19 { !byte >(TALK_BITMAP + r*320) }

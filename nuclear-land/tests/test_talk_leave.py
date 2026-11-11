@@ -33,11 +33,14 @@ def main():
     cyan = sum(1 for y in range(23, 160) for x in range(320) if nearest_index(shot.getpixel((x0 + x, y0 + y))) == CYAN)
     vice.check(cyan >= 40, f'Hesper drawn again ({cyan} cyan px)')
 
-    prg = vice.build({'AUTOWALK': 22, 'TYPESCRIPT': 1})           # leave, step away and back, T again
+    # TYPESCRIPT 7: ask NAME (Dials: trust 0 -> 1), leave; step away and back, T again (nothing typed)
+    prg = vice.build({'AUTOWALK': 22, 'TYPESCRIPT': 7})
     lab = vice.labels(prg)
-    mode, steps = vice.memread(prg, lab['game_mode'], 1, wait_s=8.0, extra_reads=[(8.0, lab['steps_done'], 2)])
+    mode, steps, trust = vice.memread(prg, lab['game_mode'], 1, wait_s=8.0, extra_reads=[
+        (8.0, lab['steps_done'], 2), (8.0, lab['trust'], 1)])
     vice.check(steps[0] | steps[1] << 8 == 36, f'walked 2 more steps after talking ({steps[0] | steps[1] << 8} of 36)')
     vice.check(mode[0] == 1, 'talking to Hesper again re-enters the talking screen')
+    vice.check(trust[0] == 1, f'Hesper remembers: trust {trust[0]} after the second meeting (not reset)')
 
 
 if __name__ == '__main__':

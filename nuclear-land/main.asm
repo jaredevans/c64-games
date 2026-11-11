@@ -209,6 +209,7 @@ stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (
 !source "squad.asm"
 !source "talk.asm"
 !source "talktext.asm"
+!source "talkrules.asm"
 !source "gen/dialogue.inc"
 !source "people.asm"
 !ifdef TEST_PEOPLE {

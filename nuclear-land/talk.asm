@@ -54,6 +54,7 @@ talk_enter
         lda #>TALK_TEXT
         jsr clear_screen
         jsr portrait_blit
+        jsr talk_meet
         jsr talk_header
         jsr conv_reset          ; the greeting opens the conversation
         ldy #DLG_GREET
@@ -61,6 +62,9 @@ talk_enter
         lda #COL_LGREY
         sta bm_fg
         jsr conv_lines
+!ifdef KNOWNTEST {
+        jsr knowntest_fill
+}
         jsr talk_bottom
         jsr SCNKEY              ; the T key may still be down: register it, then drop it
         lda #0
@@ -238,7 +242,7 @@ known_draw
         inx
         bne -
 +       stx kd_col
-        ldy #0
+        jsr known_first         ; the oldest keyword that still fits with all newer ones
 .word   cpy known_n
         beq .out
         sty kd_i
@@ -261,6 +265,38 @@ known_draw
         iny
         bne .word
 .out    rts
+
+; known_first: Y = index of the oldest known keyword such that it and every newer one fit after
+; "known: " on the two rows (whole words, one space apart)
+known_first
+        lda #7
+        sta kd_w
+        ldy known_n
+.prev   dey
+        bmi .all
+        sty kd_i
+        lda known_ids,y
+        jsr kw_ptr
+        ldy #0
+.len    lda (zp_src),y
+        beq +
+        iny
+        cpy #KW_LEN
+        bne .len
++       tya                     ; width so far + this word must stay <= 80
+        clc
+        adc kd_w
+        cmp #81
+        bcs .stop
+        adc #1                  ; + the space after it
+        sta kd_w
+        ldy kd_i
+        jmp .prev
+.stop   ldy kd_i
+        iny
+        rts
+.all    ldy #0
+        rts
 
 ; kw_ptr: zp_src = kw_text + A * 12
 kw_ptr
@@ -446,6 +482,16 @@ ts_text
         !pet "water", 13, "pump", 13, "name", 13, "job", 13, "keepers", 13, "reactor", 13, "voss", 13
         !pet "tanks", 13
 }
+!if TYPESCRIPT = 5 {            ; tests/test_talk_rules.py
+        !pet "tanks", 13, "name", 13, "job", 13, "tanks", 13, "wat", 13, "wate", 13, "banana", 13
+        !pet "name", 13, "corwin", 13
+}
+!if TYPESCRIPT = 6 {            ; tests/test_talk_rules.py (KNOWNTEST)
+        !pet "name", 13
+}
+!if TYPESCRIPT = 7 {            ; tests/test_talk_leave.py: ask once, leave
+        !pet "name", 13, 13
+}
 !if TYPESCRIPT = 3 {            ; tests/test_talk_input.py: junk, 14 letters, 3 DEL, RETURN, DEL, RETURN
         !pet "12!x", 13, "abcdefghijklmn", 20, 20, 20, 13, 20, 13
 }
@@ -471,6 +517,7 @@ input_buf     !fill 12, ' '
 kd_col        !byte 0
 trust         !fill 8, 0          ; by cast index (Task 5: the rules)
 kd_i          !byte 0
+kd_w          !byte 0
 known_n       !byte 4
 known_ids     !byte 0, 1, 2, 3
               !fill 28, 0

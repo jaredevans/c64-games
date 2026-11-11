@@ -127,6 +127,7 @@ bm_col      = $4a
 bm_row      = $4b
 bm_fg       = $4c
 conv_n      = $4d       ; conversation lines used (0..CONV_LINES)
+tr_rev      = $4e       ; 2 bytes: the answered topic's reveal list
 
 ; ---- directions ----
 DIR_UP    = 0
