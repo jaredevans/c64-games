@@ -30,18 +30,25 @@ its people.
 
 ## Status
 
-**Milestone 1 — walking engine (done).** A 64×48-tile test map scrolls under a single squad
-figure:
+**Milestone 1: walking engine (done).** Smooth 8-frame glide per tile step in all four directions,
+hardware fine scrolling with double-buffered coarse scrolling, a rock-still status line and squad
+strip, the camera stopping at the map edges, a steady 50 fps (PAL).
 
-- Smooth 8-frame glide per tile step in all four directions, chaining with no stall while a key
-  is held.
-- Hardware fine scroll (`$D016` / `$D011`) with double-buffered coarse scrolling — no tearing.
-- The status line and the squad strip stay rock-still while the map scrolls beneath them.
-- At the map's edges the camera stops and the figure walks on instead.
-- Walls and buildings block movement.
-- Runs at a steady 50 fps (PAL).
+**Milestone 2: Cinderhill (done).** The real town, 64×48 tiles:
 
-**Next:** Cinderhill itself — the real town map, townspeople, and the talking screen.
+- Ten districts (Market Row, the Reactor Yard and Gate, Old Lots, West Shacks, the Caravan Camp,
+  Town Hall, Storehouse, Greenhouse and the Town Square), drawn from a 45-tile hi-res set with a
+  multi-cell reactor dome.
+- Seven townspeople as hardware sprites. They stay glued to the map while it scrolls and block your
+  way. Pip wanders Market Row.
+- A status line naming the district you're in, with a Geiger meter that rises near hot spots.
+- A squad strip with the leader marked, health bars, and a message line.
+- Keys **1–4** switch the leader, and the squad figure takes the leader's colour. **T** next to a
+  person picks them to talk to (the talking screen comes next).
+- Glowing hot spots drain everyone's health. A member at zero is sick and can't lead. With Maren
+  leading, **U** treats the squad, and she recovers by herself away from radiation. Nobody dies.
+
+**Next:** the talking screen, with Hesper's conversation and portrait.
 
 ## Running it
 
@@ -63,19 +70,30 @@ set to NTSC.
 |-----|--------|
 | Cursor keys | Move up / down / left / right |
 | `I` / `K` / `J` / `L` | Move up / down / left / right |
+| `1` `2` `3` `4` | Choose the leader: Vesna, Dials, Maren, Rook |
+| `T` | Talk to the person next to you |
+| `U` | Use the leader's skill (Maren: treat the squad) |
 
-Both sets always work. There is no joystick support.
+Both sets of movement keys always work. There is no joystick support.
 
 ## Building the assets
 
-The tile graphics and map binaries in `gen/` are generated and committed. To rebuild them after
+The tile graphics and map data in `gen/` are generated and committed. To rebuild them after
 editing the tile art in `tools/make_tiles.py` or a map in `maps/`:
 
 ```sh
-python3 tools/make_map.py testmap     # also regenerates gen/tiles.bin, tilecolors.bin, tiles.inc
+python3 tools/make_map.py cinderhill  # also regenerates gen/tiles.bin, tilecolors.bin, tiles.inc
+python3 tools/make_map.py testmap     # the engine tests' map
 ```
 
-Maps are plain 64×48 ASCII: `.` ground, `=` road, `:` rubble, `#` wall.
+A map is 48 rows of 64 legend characters followed by meta lines (`start`, `place`, `person`,
+`wander`). Ground and roads are passable: `.` ground, `=` road, `-` and `|` lane markings, `%`
+cracked road, `^` hot spot. Everything else blocks: `#` brick wall, `C` concrete, `W` broken window,
+`D` door, `R`/`E` tin roof and its edge, `F`/`V` chain-link fence, `+` fence post, `G` gate, `!`
+hazard sign, `o` barrel, `g` greenhouse glass, `*` plants, `[` `]` wrecked car, `P` pump, `S` market
+stall, `T` tent, `K` cart, `:` rubble, and `@` for the 6×4 reactor dome. The tool also writes each
+map's radiation field, place table and people table, and `tests/test_map_data.py` checks the map's
+rules: no hot spot ever cuts off part of the town, and everyone can be reached.
 
 ## Tests
 
@@ -99,8 +117,11 @@ add load so every frame of a glide can be checked.
 | `irq.asm` | Raster interrupt chain: status line, map band, HUD |
 | `walk.asm` | Step glide, camera, collision, edge clamp |
 | `view.asm` | Draws the map into the back screen buffer |
-| `input.asm` | Keyboard matrix scan (arrows + IJKL) |
-| `hud.asm` | Status line and squad strip |
+| `input.asm` | Keyboard matrix scan: movement and action keys |
+| `people.asm` | Townspeople sprites: placement, visibility, blocking, Pip's wander |
+| `status.asm` | Status line: place name and Geiger meter |
+| `squad.asm` | Health, leader, actions, radiation, healing, messages |
+| `hud.asm` | Squad strip: names, health bars, message line |
 | `charset.asm` | Builds the character set (ROM font + tiles) |
 | `hw.inc` | Hardware registers and memory map |
 
@@ -117,4 +138,9 @@ add load so every frame of a glide can be checked.
   (raster lines 74–210), so its top and bottom edges don't bounce as it scrolls.
 - **Coarse scrolling:** each step redraws the back buffer in thirds across the first frames of
   the glide, then flips buffers mid-glide. The colour RAM copy is unrolled to fit in the
-  flip frame.
+  flip frame. These long jobs run after the sprites are placed, so sprite positions are always
+  written well before the map is drawn.
+- **Townspeople:** each person's sprite position comes from the same camera and fine-scroll values
+  as the map, so they move with it pixel for pixel. A sprite is only shown while all of its raster
+  lines stay clear of the screen splits, so near the top and bottom of the map people pop in and
+  out instead of sliding past the edge.

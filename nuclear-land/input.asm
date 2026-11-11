@@ -445,6 +445,35 @@ walk_script
         +hold 48, K_NONE, K_NONE, K4_I, K_NONE, K_NONE
         +idle 1
 }
+!if AUTOWALK = 6 {              ; tests/test_radiation.py: 8 hot steps, refused 3, recover, heal, rest
+        +hold 152, K_NONE, K_NONE, K4_J, K_NONE, K_NONE      ; (29,19) -> (10,19)
+        +hold 16, K_NONE, K_NONE, K4_K, K_NONE, K_NONE       ; (10,20), (10,21) = hot 1
+        !for i, 1, 7 {                                       ; hot 2..8, ending on (11,21)
+                !if i & 1 { +hold 8, K_NONE, K_NONE, K_NONE, K5_L, K_NONE } else { +hold 8, K_NONE, K_NONE, K4_J, K_NONE, K_NONE }
+        }
+        +press 2, 1, K1_3                                    ; Maren is sick: refused
+        +idle 4
+        +hold 16, K_NONE, K_NONE, K4_I, K_NONE, K_NONE       ; (11,19)
+        +hold 160, K_NONE, K_NONE, K_NONE, K5_L, K_NONE      ; (31,19): x=15..31 radiation-free
+        +press 2, 1, K1_3
+        +idle 4
+        +press 2, 3, K3_U                                    ; heal
+        +idle 4
+        +press 2, 3, K3_U                                    ; must rest
+        +idle 1
+}
+!if AUTOWALK = 15 {             ; tests/test_radiation.py: the 8 hot steps only
+        +hold 152, K_NONE, K_NONE, K4_J, K_NONE, K_NONE
+        +hold 16, K_NONE, K_NONE, K4_K, K_NONE, K_NONE
+        !for i, 1, 7 {
+                !if i & 1 { +hold 8, K_NONE, K_NONE, K_NONE, K5_L, K_NONE } else { +hold 8, K_NONE, K_NONE, K4_J, K_NONE, K_NONE }
+        }
+        +idle 1
+}
+!if AUTOWALK = 16 {             ; README preview: up the main street to the reactor gate
+        +hold 80, K_NONE, K_NONE, K4_I, K_NONE, K_NONE
+        +idle 1
+}
 !if AUTOWALK = 13 {             ; tests/test_actions.py: AUTOWALK=10's route, then T (held), 2, U
         +hold 64, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
         +hold 48, K_NONE, K_NONE, K4_I, K_NONE, K_NONE

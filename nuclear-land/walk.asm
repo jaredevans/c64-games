@@ -157,6 +157,7 @@ walk_update
 ; on_step_end: once per completed step (scrolling or sprite glide), on its last glide frame - never
 ; a buffer-flip frame
 on_step_end
+        jsr squad_step          ; radiation, Maren's recovery, heal cooldown
         jmp status_draw
 
 ; sprite_step: move the leader sprite 1 px in glide_dir

@@ -5,6 +5,11 @@
 ; falls sick stays leader and can still walk, so the squad never gets stuck.
 
 HP_MAX = 32
+HOT_DAMAGE = 4                  ; to every member, per step onto a hot spot
+HEAL_AMOUNT = 12                ; Maren's treatment, to every member
+HEAL_COOLDOWN = 16              ; steps before Maren can treat again
+MAREN_RECOVER_STEPS = 16        ; steps on radiation-free tiles for a sick Maren to recover...
+MAREN_RECOVER_HP = 4            ; ...to this much health
 
 !zone squad_init
 squad_init
@@ -17,6 +22,10 @@ squad_init
         sta leader
         sta actions_done
         sta refusals
+        sta heal_cool
+        sta maren_rec
+        sta hot_steps
+        sta heals_done
         lda #$ff
         sta talk_target
         lda #ACT_NONE
@@ -114,8 +123,90 @@ act_use
         pla
         jmp msg_set
 
+!zone maren_use
 maren_use
+        lda squad_hp+2
+        bne +
+        lda #<msg_maren_sick
+        ldx #>msg_maren_sick
+        jmp msg_set
++       jsr leader_rad
+        cmp #8
+        bne +
+        lda #<msg_too_hot
+        ldx #>msg_too_hot
+        jmp msg_set
++       lda heal_cool
+        beq +
+        lda #<msg_rest
+        ldx #>msg_rest
+        jmp msg_set
++       ldx #3
+-       lda squad_hp,x
+        clc
+        adc #HEAL_AMOUNT
+        cmp #HP_MAX+1
+        bcc +
+        lda #HP_MAX
++       sta squad_hp,x
+        dex
+        bpl -
+        lda #HEAL_COOLDOWN
+        sta heal_cool
+        inc heals_done
+        lda #<msg_treats
+        ldx #>msg_treats
+        jmp msg_set
+
+; squad_step: once per completed step (from on_step_end) - radiation, Maren's recovery, cooldown
+!zone squad_step
+squad_step
+        jsr leader_rad
+        cmp #8
+        bne .nothot
+        ldx #3                  ; on a hot spot: everyone takes HOT_DAMAGE, floored at 0
+-       lda squad_hp,x
+        sec
+        sbc #HOT_DAMAGE
+        bcs +
+        lda #0
++       sta squad_hp,x
+        dex
+        bpl -
+        inc hot_steps
+        lda #<msg_hot
+        ldx #>msg_hot
+        jsr msg_set
+        jmp .cool
+.nothot cmp #0                  ; radiation-free tile: a sick Maren slowly recovers
+        bne .cool
+        lda squad_hp+2
+        bne .cool
+        inc maren_rec
+        lda maren_rec
+        cmp #MAREN_RECOVER_STEPS
+        bne .cool
+        lda #MAREN_RECOVER_HP
+        sta squad_hp+2
+        lda #0
+        sta maren_rec
+        lda #<msg_better
+        ldx #>msg_better
+        jsr msg_set
+.cool   lda heal_cool
+        beq +
+        dec heal_cool
++       lda #1
+        sta hud_dirty
         rts
+
+; leader_rad: A = radiation level at the leader's cell
+leader_rad
+        lda leader_x
+        sta zp_tmp
+        lda leader_y
+        sta zp_row
+        jmp rad_at
 
 ; leader_colour: squad sprite colour = leader's colour
 leader_colour
@@ -184,11 +275,21 @@ msg_nothing_yet   !scr " has nothing to say yet.", 0
 msg_skill_v       !scr "vesna finds nobody to persuade.", 0
 msg_skill_d       !scr "dials finds nothing to fix.", 0
 msg_skill_r       !scr "rook finds no tracks here.", 0
+msg_hot           !scr "hot spot! the squad takes radiation.", 0
+msg_better        !scr "maren feels better.", 0
+msg_treats        !scr "maren treats the squad.", 0
+msg_rest          !scr "maren needs to rest first.", 0
+msg_too_hot       !scr "too hot here to treat anyone.", 0
+msg_maren_sick    !scr "maren is too sick to help.", 0
 
 squad_hp     !fill 4, HP_MAX
 leader       !byte 0
 talk_target  !byte $ff
 actions_done !byte 0
 refusals     !byte 0
+heal_cool    !byte 0
+maren_rec    !byte 0
+hot_steps    !byte 0
+heals_done   !byte 0
 msg_len      !byte 0
 msg_buf      !fill 40, ' '
