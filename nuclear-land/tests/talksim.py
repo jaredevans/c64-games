@@ -48,3 +48,14 @@ class Talk:
                         self.known.append(i)
                 return t['say']
         return self.p['unknown']
+
+
+class StubTalk(Talk):
+    """M3 Task 4's talk_ask before the rules exist: every word gets the 'unknown' answer, trust 0."""
+
+    def enter(self, leader):
+        self.met = True
+        return self.p['greet']
+
+    def ask(self, word, leader):
+        return self.p['unknown']

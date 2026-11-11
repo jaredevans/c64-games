@@ -34,6 +34,11 @@ talk_enter
         stx talk_people_i
         lda people_cast,x
         sta talk_person
+        tax
+        lda dlg_lo,x
+        sta dlg_ptr
+        lda dlg_hi,x
+        sta dlg_ptr+1
         sei
         lda #0
         sta VIC_SPREN
@@ -50,6 +55,12 @@ talk_enter
         jsr clear_screen
         jsr portrait_blit
         jsr talk_header
+        jsr conv_reset          ; the greeting opens the conversation
+        ldy #DLG_GREET
+        jsr dlg_word_to_txt
+        lda #COL_LGREY
+        sta bm_fg
+        jsr conv_lines
         jsr talk_bottom
         jsr SCNKEY              ; the T key may still be down: register it, then drop it
         lda #0
@@ -155,10 +166,6 @@ portrait_blit
         bne .colrow
         rts
 
-; talk_header: name, role, trust meter (rows 0-2, columns 16-39) - filled in by the text engine
-talk_header
-        rts
-
 ; talk_bottom: the text rows 19-23 and their colours
 !zone talk_bottom
 talk_bottom
@@ -212,7 +219,9 @@ prompt_draw
         sta TALK_TEXT + ROW_PROMPT*40 + 2,x
         inx
         bne -
-+       rts
++       lda #G_METER_ON         ; cursor
+        sta TALK_TEXT + ROW_PROMPT*40 + 2,x
+        rts
 
 ; known_draw: "known: " + the squad's known keywords on rows 19-20
 !zone known_draw
@@ -290,11 +299,9 @@ talk_frame
 }
         jsr SCNKEY
         jsr GETIN
-        cmp #13
-        bne +
-        lda input_len
-        bne +
-        jmp talk_leave
+        cmp #0
+        beq +
+        jmp talk_key
 +       rts
 
 ; talk_leave: back to the town, rebuilt from game state
@@ -435,6 +442,16 @@ ts_text
 !if TYPESCRIPT = 1 {            ; tests/test_talk_leave.py: leave at once
         !byte 13
 }
+!if TYPESCRIPT = 4 {            ; tests/test_talk_text.py: 8 questions, stay
+        !pet "water", 13, "pump", 13, "name", 13, "job", 13, "keepers", 13, "reactor", 13, "voss", 13
+        !pet "tanks", 13
+}
+!if TYPESCRIPT = 3 {            ; tests/test_talk_input.py: junk, 14 letters, 3 DEL, RETURN, DEL, RETURN
+        !pet "12!x", 13, "abcdefghijklmn", 20, 20, 20, 13, 20, 13
+}
+!if TYPESCRIPT = 8 {            ; tests/test_talk_input.py: junk, then 14 letters (prompt state)
+        !pet "12!x", 13, "abcdefghijklmn"
+}
         !byte 0
 }
 
@@ -452,6 +469,7 @@ talk_person   !byte 0
 input_len     !byte 0
 input_buf     !fill 12, ' '
 kd_col        !byte 0
+trust         !fill 8, 0          ; by cast index (Task 5: the rules)
 kd_i          !byte 0
 known_n       !byte 4
 known_ids     !byte 0, 1, 2, 3

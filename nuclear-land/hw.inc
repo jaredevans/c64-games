@@ -118,6 +118,15 @@ act_prev    = $3c       ; last frame's decoded action (edge detection)
 act_pending = $3d       ; action waiting for the leader to stand still (ACT_*)
 hud_dirty   = $3e       ; squad strip needs a redraw
 game_mode   = $3f       ; MODE_WALK or MODE_TALK
+dlg_ptr     = $40       ; 2 bytes: the talk person's dialogue block (gen/dialogue.inc)
+bm_ptr      = $42       ; 2 bytes: bitmap cell being drawn
+bm_cptr     = $44       ; 2 bytes: its colour byte (SCREEN_A)
+bm_src      = $46       ; 2 bytes: glyph / scroll source
+txt_ptr     = $48       ; 2 bytes: text being drawn
+bm_col      = $4a
+bm_row      = $4b
+bm_fg       = $4c
+conv_n      = $4d       ; conversation lines used (0..CONV_LINES)
 
 ; ---- directions ----
 DIR_UP    = 0

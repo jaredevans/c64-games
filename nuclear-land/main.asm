@@ -32,6 +32,7 @@ start
         lda #%00001000          ; CSEL (40 cols), XSCROLL 0
         sta VIC_CTRL2
         jsr charset_init
+        jsr font_init
         lda #>SCREEN_A
         jsr clear_screen
         lda #>SCREEN_B
@@ -207,6 +208,7 @@ stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (
 !source "status.asm"
 !source "squad.asm"
 !source "talk.asm"
+!source "talktext.asm"
 !source "gen/dialogue.inc"
 !source "people.asm"
 !ifdef TEST_PEOPLE {
