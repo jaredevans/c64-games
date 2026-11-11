@@ -280,6 +280,11 @@ walk_script
         +hold 30, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
         +idle 1
 }
+!if AUTOWALK = 7 {              ; tests/test_status.py: J to (10,19), K to (10,20) beside the hot spots
+        +hold 152, K_NONE, K_NONE, K4_J, K_NONE, K_NONE
+        +hold 8, K_NONE, K_NONE, K4_K, K_NONE, K_NONE
+        +idle 1
+}
 !if AUTOWALK = 11 {             ; tests/test_edge_clamp_ns.py: I to the north wall, then bump it
         +hold 144, K_NONE, K_NONE, K4_I, K_NONE, K_NONE
         +idle 1

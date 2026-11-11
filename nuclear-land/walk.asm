@@ -147,7 +147,13 @@ walk_update
         sec
         sbc #LEADER_ROW
         sta spr_off_y
+        jmp on_step_end
 +       rts
+
+; on_step_end: once per completed step (scrolling or sprite glide), on its last glide frame - never
+; a buffer-flip frame
+on_step_end
+        jmp status_draw
 
 ; sprite_step: move the leader sprite 1 px in glide_dir
 sprite_step

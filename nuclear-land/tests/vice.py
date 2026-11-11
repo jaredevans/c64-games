@@ -201,6 +201,17 @@ def _port_free_or_die(port):
 
 
 # ---- comparison helpers shared by tests ----
+def scr(text):
+    """ASCII -> C64 screen codes (what ACME's !scr makes of the same text in lower case)."""
+    return bytes(ord(c) - 64 if 'A' <= c <= 'Z' else ord(c) for c in text.upper())
+
+
+def screen_rows(prg, row, n, wait_s, buf='A'):
+    """Screen RAM rows [row, row+n) of SCREEN_A ($C000) or SCREEN_B ($C400), read via the monitor."""
+    base = 0xc000 if buf == 'A' else 0xc400
+    return memread(prg, base + row * 40, n * 40, wait_s=wait_s)
+
+
 def band_mismatch(shot, expected_idx, cam_rows=(2, 20), cols=(1, 39), ignore_box=None, dx=0, dy=0,
                   y_window=(23, 160)):
     """Fraction of pixels in the map band whose nearest-palette index differs from expected.

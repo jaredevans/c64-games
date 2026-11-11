@@ -44,6 +44,7 @@ start
         lda #>SCREEN_A
         jsr view_draw_full
         jsr hud_draw
+        jsr status_init
         jsr sprite_init
         lda #FINE_REST_X
         sta fine_x
@@ -176,6 +177,7 @@ stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (
 !source "charset.asm"
 !source "view.asm"
 !source "hud.asm"
+!source "status.asm"
 !ifdef TESTMAP {
 !source "gen/testmap.inc"
 } else {
