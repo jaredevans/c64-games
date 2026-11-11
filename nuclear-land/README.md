@@ -80,8 +80,8 @@ the Market Row pump house, and the screen changes:
 **Milestone 5: the mystery's end (in progress).** The squad's skills now work at their spots.
 **U** uses the leader's skill, and the message line says what was found:
 
-- **Vesna** next to Brandt talks her into opening up: the reactor gate opens, and Brandt is at Open
-  the next time you talk.
+- **Vesna** next to Brandt talks the Warden into opening up: the reactor gate opens, and Brandt is
+  at Open the next time you talk.
 - **Dials** beside the coolant valve behind the dome finds the tap on the line (TAPPED joins the
   Known list). Beside the old service hatch next to it, Dials forces it open, but only once Pip
   has told the squad about the HATCH.
@@ -201,7 +201,7 @@ add load so every frame of a glide can be checked.
 | `input.asm` | Keyboard matrix scan: movement and action keys |
 | `people.asm` | Townspeople sprites: placement, visibility, blocking, Pip's wander |
 | `status.asm` | Status line: place name and Geiger meter |
-| `squad.asm` | Health, leader, actions, radiation, healing, messages |
+| `squad.asm` | Health, leader, actions, the skill spots (gate, valve, hatch, Jory, tracks), radiation, healing, messages |
 | `hud.asm` | Squad strip: names, health bars, message line |
 | `charset.asm` | Builds the character set (ROM font + tiles) |
 | `talk.asm` | Talking screen: entering, the portrait, the raster split, leaving |
