@@ -149,6 +149,15 @@
    ]
   },
   {
+   "name": "BASEMENT",
+   "rect": [
+    0,
+    48,
+    63,
+    65
+   ]
+  },
+  {
    "name": "TOWN SQUARE",
    "rect": null
   }
@@ -251,6 +260,18 @@
    32
   ]
  ],
- "n_passable": 18,
- "n_blocked": 49
+ "down": [
+  20,
+  53
+ ],
+ "up": [
+  35,
+  4
+ ],
+ "bcam": [
+  12,
+  48
+ ],
+ "n_passable": 21,
+ "n_blocked": 52
 }

@@ -68,10 +68,16 @@ status_draw
         bne -
         rts
 
-; rad_at: A = radiation level (0..8, 8 = on a hot spot) at cell (zp_tmp, zp_row). Clobbers Y, zp_src.
+; rad_at: A = radiation level (0..8, 8 = on a hot spot) at cell (zp_tmp, zp_row); 0 in the basement
+; (rows MAP_H and up: map_rad only covers the town). Clobbers Y, zp_src.
 !zone rad_at
 rad_at
-        jsr map_cell_ptr
+        lda zp_row
+        cmp #MAP_H
+        bcc +
+        lda #0
+        rts
++       jsr map_cell_ptr
         lda zp_src
         clc
         adc #<(map_rad - map_data)

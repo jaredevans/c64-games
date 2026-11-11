@@ -74,8 +74,7 @@ the Market Row pump house, and the screen changes:
   takes about 9 seconds; fastload cartridges, JiffyDOS, SD2IEC, the C64 Ultimate's drive and
   emulators are much quicker. With an REU (RAM Expansion Unit, real or emulated), each face is
   kept there after its first load, so going back to someone is instant.
-- Jory stays closed until Maren treats his fever, and Voss's conversation is written but he can't be
-  found yet: both wait on milestone 5.
+- Jory stays closed until Maren treats his fever, and Voss is hidden: milestone 5 opens both.
 
 **Milestone 5: the mystery's end (in progress).** The squad's skills now work at their spots.
 **U** uses the leader's skill, and the message line says what was found:
@@ -91,8 +90,13 @@ the Market Row pump house, and the screen changes:
   joins the Known list).
 
 A skill can be used again at its spot: a word joins the Known list only once, and an open gate or
-hatch just stands open. Still to come: the way down the hatch to Voss, and the ending, which counts
-the proofs the squad found (CARTS, BARRELS, TRACKS, TAPPED).
+hatch just stands open.
+
+Step onto the open hatch and the squad climbs down into the **basement** under the dome, a sealed
+cellar where the camera holds still and the squad walks around inside one screen. Voss is down
+there: **T** next to him opens his conversation. The stairs in the corner lead back up to the yard,
+beside the hatch. Still to come: the ending, which counts the proofs the squad found (CARTS,
+BARRELS, TRACKS, TAPPED).
 
 ## Running it
 
@@ -140,7 +144,9 @@ brick wall, `C` concrete, `W` broken window, `D` door, `R`/`E` tin roof and its 
 chain-link fence, `+` fence post, `G` gate (Vesna opens it: each cell becomes the tile below it),
 `!` hazard sign, `o` barrel, `g` greenhouse glass, `*` plants, `[` `]` wrecked car, `P` pump, `S`
 market stall, `T` tent, `K` cart, `:` rubble, `Q` pipe, `Y` coolant valve, `H` service hatch, and
-`@` for the 6×4 reactor dome. The tool also writes each map's radiation field, place table, gate
+`@` for the 6×4 reactor dome. Cinderhill has 18 more rows below the town for the basement, with `f`
+cellar floor and `U` stairs up (passable), `X` darkness, `L` lamp, and `a`/`b` for Voss's head and
+body; its `down`, `up` and `bcam` meta lines give the two arrival cells and the pinned camera. The tool also writes each map's radiation field, place table, gate
 table and people table, and `tests/test_map_data.py` checks the map's
 rules: no hot spot ever cuts off part of the town, everyone can be reached, and the valve and
 hatch can only be reached through the open gate.
@@ -196,7 +202,7 @@ add load so every frame of a glide can be checked.
 |------|------|
 | `main.asm` | Start-up, memory setup, main loop |
 | `irq.asm` | Raster interrupt chain: status line, map band, HUD |
-| `walk.asm` | Step glide, camera, collision, edge clamp |
+| `walk.asm` | Step glide, camera, collision, edge clamp, down the hatch and back up |
 | `view.asm` | Draws the map into the back screen buffer |
 | `input.asm` | Keyboard matrix scan: movement and action keys |
 | `people.asm` | Townspeople sprites: placement, visibility, blocking, Pip's wander |

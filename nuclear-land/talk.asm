@@ -49,11 +49,13 @@ GETIN        = $ffe4
 KEYBUF       = $0277
 KEYBUF_N     = $c6
 
-; talk_enter: X = people index of the person to talk to (who has dialogue)
+; talk_enter: X = people index of the person to talk to (who has dialogue). talk_enter_cast: A = cast
+; index, X = people index or $ff for Voss (a figure on the basement map, not a townsperson sprite).
 !zone talk_enter
 talk_enter
-        stx talk_people_i
         lda people_cast,x
+talk_enter_cast
+        stx talk_people_i
         sta talk_person
         tax
         lda dlg_lo,x
@@ -231,11 +233,9 @@ portrait_load
 ; and that screen on: plain text mode, steady without IRQs
 !zone loading_show
 loading_show
-        ldx talk_people_i
-        lda people_name_lo,x
+        jsr talk_name
         sta zp_src
-        lda people_name_hi,x
-        sta zp_src+1
+        stx zp_src+1
         ldx #0
 -       lda txt_approach,x
         beq +
@@ -649,12 +649,7 @@ talk_leave
         lda #<msg_leave
         ldx #>msg_leave
         jsr msg_set
-        ldx talk_people_i
-        lda people_name_lo,x
-        pha
-        lda people_name_hi,x
-        tax
-        pla
+        jsr talk_name
         jsr msg_add
         lda #<msg_dot
         ldx #>msg_dot
@@ -674,6 +669,21 @@ talk_leave
         sta VIC_IRQ
         cli
         rts
+
+; talk_name: X:A (A = lo) = the screen-code name of who is being talked to
+talk_name
+        ldx talk_people_i
+        bmi +
+        lda people_name_lo,x
+        pha
+        lda people_name_hi,x
+        tax
+        pla
+        rts
++       lda #<name_voss
+        ldx #>name_voss
+        rts
+name_voss !scr "voss", 0
 
 ; sprites_restore: sprite shapes and pointers after the bitmap overwrote them
 !zone sprites_restore
@@ -895,6 +905,9 @@ ts_text
 }
 !if TYPESCRIPT = 11 {           ; tests/test_skills.py: Jory, after Maren's treatment
         !pet "name", 13
+}
+!if TYPESCRIPT = 12 {           ; tests/test_basement.py: Voss, one question, leave
+        !pet "name", 13, 13
 }
 !if TYPESCRIPT = 3 {            ; tests/test_talk_input.py: junk, 14 letters, 3 DEL, RETURN, DEL, RETURN
         !pet "12!x", 13, "abcdefghijklmn", 20, 20, 20, 13, 20, 13

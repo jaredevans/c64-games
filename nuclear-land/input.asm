@@ -605,6 +605,31 @@ walk_script
         +use
         +idle 1
 }
+; M5 the basement (tests/test_basement.py, built with KNOW_HATCH)
+!macro to_basement {            ; through the gate, Dials forces the hatch, steps onto it: (20,53)
+        +into_yard
+        +to_valve
+        +valve_to_hatch
+        +use
+        +steps 1, K4_J, K_NONE
+        +idle 4
+}
+!if AUTOWALK = 37 {             ; down the hatch
+        +to_basement
+        +idle 1
+}
+!if AUTOWALK = 38 {             ; down, over to (35,56) beside Voss (36,56), T
+        +to_basement
+        +steps 15, K_NONE, K5_L
+        +steps 3, K4_K, K_NONE
+        +press 2, 2, K2_T
+        +idle 1
+}
+!if AUTOWALK = 39 {             ; down, then back up the stairs (20,52)
+        +to_basement
+        +steps 1, K4_I, K_NONE
+        +idle 1
+}
 !if AUTOWALK = 19 {             ; Maren leads
         +to_hesper
         +press 2, 1, K1_3

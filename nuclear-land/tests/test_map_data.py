@@ -28,6 +28,14 @@ def inc_consts(path):
     return out
 
 
+def place_of_meta(meta, c):
+    for p in meta['places']:
+        r = p['rect']
+        if r is None or (r[0] <= c[0] <= r[2] and r[1] <= c[1] <= r[3]):
+            return p['name']
+    return None
+
+
 def check_map(name):
     meta = make_map.convert(name)
     gen = NL / 'gen'
@@ -174,7 +182,47 @@ def main():
     brandt = next(p for p in people if p['letter'] == 'b')
     check(any(n in shut for n in sides((brandt['x'], brandt['y']))), 'cinderhill: Brandt has a free side outside the gate')
 
+    # M5 the basement: 18 more map rows below the town (gen/cinderhill_below.bin, straight after the
+    # town's rows in memory). The open hatch and the stairs up are passable; stepping on one moves
+    # the squad to the other side's arrival cell. Underground the camera is pinned at BCAM_X, 48.
+    js = json.loads((NL / 'gen' / 'cinderhill.json').read_text())
+    below = (NL / 'gen' / 'cinderhill_below.bin').read_bytes()
+    check(len(below) == 18 * 64, 'cinderhill: 18 basement rows of 64')
+    full = mp + below
+    bb = tiles['BLOCK_BASE']
+    check(all(tiles[t] < bb for t in ('T_HATCH_OPEN', 'T_STAIRS_UP', 'T_FLOOR')) and
+          all(tiles[t] >= bb for t in ('T_VOSS_HEAD', 'T_VOSS_BODY', 'T_DARK')),
+          'cinderhill: open hatch, stairs and floor are passable; Voss and the dark are not')
+    mi = inc_consts(NL / 'gen' / 'cinderhill.inc')
+    down, up, bcam = (mi['DOWN_X'], mi['DOWN_Y']), (mi['UP_X'], mi['UP_Y']), (mi['BCAM_X'], mi['BCAM_Y'])
+    check(mi['HAS_BASEMENT'] == 1 and bcam[1] == 48, f'cinderhill: basement, camera pinned at {bcam}')
+    check(js['down'] == list(down) and js['up'] == list(up) and js['bcam'] == list(bcam), 'cinderhill: json has the arrival cells')
+
+    def fcode(c):
+        return full[c[1] * 64 + c[0]]
+    seen, q = {down}, deque([down])
+    while q:
+        c = q.popleft()
+        for n in sides(c):
+            if n not in seen and 0 <= n[1] < 66 and fcode(n) < bb:
+                seen.add(n)
+                q.append(n)
+    stairs = [c for c in seen if fcode(c) == tiles['T_STAIRS_UP']]
+    voss = [(i % 64, i // 64) for i, c in enumerate(full) if c == tiles['T_VOSS_BODY']]
+    check(all(c[1] >= 48 for c in seen) and len(seen) >= 60, f'cinderhill: the basement ({len(seen)} cells) is sealed off from the town')
+    check(all(c[1] < 48 for c in opened), 'cinderhill: no walk from the town reaches the basement')
+    check(fcode(down) == tiles['T_FLOOR'] and len(stairs) == 1 and stairs[0] in sides(down),
+          f'cinderhill: the squad lands on floor at {down}, beside the stairs up {stairs}')
+    check(len(voss) == 1 and fcode((voss[0][0], voss[0][1] - 1)) == tiles['T_VOSS_HEAD'] and
+          any(n in seen for n in sides(voss[0])), f'cinderhill: Voss at {voss}, head above, a free side')
+    check(all(1 <= x - bcam[0] <= 38 and 2 <= y - bcam[1] <= 15 for x, y in seen),
+          'cinderhill: every basement cell is in view columns 1-38, rows 2-15 (sprite clear of the splits)')
+    check(up in opened and fcode(up) < bb and up != hatch[0] and hatch[0] in sides(up),
+          f'cinderhill: coming up, the squad lands at {up}, beside the hatch, inside the yard')
+    check(all(place_of_meta(meta, c) == 'BASEMENT' for c in seen), 'cinderhill: the basement has its own place name')
+
     meta, mp, hot, *_ = check_map('testmap')
+    check(inc_consts(NL / 'gen' / 'testmap.inc')['HAS_BASEMENT'] == 0, 'testmap: no basement')
     check(inc_consts(NL / 'gen' / 'testmap.inc')['GATE_N'] == 0, 'testmap: no gate (GATE_N = 0)')
     check(hot == {(10, 21), (11, 21)} and tuple(meta['start']) == (29, 19) and meta['people'] == [],
           'testmap: hot tiles (10,21),(11,21), start (29,19), nobody else')

@@ -84,11 +84,20 @@ act_lead
 act_talk
         jsr adjacent_person
         bcs .found
+        lda #T_VOSS_BODY        ; Voss is a figure on the basement map
+        jsr near_tile
+        bcs .voss
+        lda #T_VOSS_HEAD
+        jsr near_tile
+        bcs .voss
         lda #$ff
         sta talk_target
         lda #<msg_nobody
         ldx #>msg_nobody
         jmp msg_set
+.voss   lda #CAST_VOSS
+        ldx #$ff
+        jmp talk_enter_cast
 .found  stx talk_target
         ldy people_cast,x       ; someone with dialogue: the talking screen
         cpy #$ff
@@ -139,6 +148,7 @@ adjacent_person
 ;   Rook on the cart tracks  TRACKS joins Known
 CAST_BRANDT = 1                 ; cast indexes (tools/make_map.py CAST)
 CAST_JORY   = 3
+CAST_VOSS   = 7
 OPEN        = 2                 ; trust tier
 
 !zone act_use

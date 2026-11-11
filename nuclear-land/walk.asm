@@ -74,25 +74,7 @@ walk_update
         sta leader_x
         lda zp_row
         sta leader_y
-        ; new camera = clamp(leader - (LEADER_COL, LEADER_ROW))
-        lda leader_x
-        sec
-        sbc #LEADER_COL
-        bcs +
-        lda #0
-+       cmp #CAM_MAX_X+1
-        bcc +
-        lda #CAM_MAX_X
-+       sta bcam_x
-        lda leader_y
-        sec
-        sbc #LEADER_ROW
-        bcs +
-        lda #0
-+       cmp #CAM_MAX_Y+1
-        bcc +
-        lda #CAM_MAX_Y
-+       sta bcam_y
+        jsr cam_for_leader
         ldy #0                  ; glide_spr = camera unchanged
         lda bcam_x
         cmp cam_x
@@ -158,7 +140,154 @@ walk_update
 ; a buffer-flip frame
 on_step_end
         jsr squad_step          ; radiation, Maren's recovery, heal cooldown
+        jsr level_check         ; onto the open hatch / the stairs: the other level
         jmp status_draw
+
+; cam_for_leader: (bcam_x, bcam_y) = clamp(leader - (LEADER_COL, LEADER_ROW)) to this level's
+; camera limits
+cam_for_leader
+        lda leader_x
+        sec
+        sbc #LEADER_COL
+        bcs +
+        lda #0
++       cmp cam_lo_x
+        bcs +
+        lda cam_lo_x
++       cmp cam_hi_x
+        bcc +
+        lda cam_hi_x
++       sta bcam_x
+        lda leader_y
+        sec
+        sbc #LEADER_ROW
+        bcs +
+        lda #0
++       cmp cam_lo_y
+        bcs +
+        lda cam_lo_y
++       cmp cam_hi_y
+        bcc +
+        lda cam_hi_y
++       sta bcam_y
+        rts
+
+; level_check: a step onto the open hatch takes the squad down to the basement's arrival cell, a step
+; onto the stairs up back to the yard beside the hatch (gen/<map>.inc DOWN_*, UP_*)
+!zone level_check
+level_check
+        lda underground
+        bne .up
+        lda #T_HATCH_OPEN
+        jsr on_tile
+        bcc .out
+        lda #DOWN_X
+        sta leader_x
+        lda #DOWN_Y
+        sta leader_y
+        lda #1
+        sta underground
+        jsr travel
+        lda #<msg_down
+        ldx #>msg_down
+        jmp msg_set
+.up     lda #T_STAIRS_UP
+        jsr on_tile
+        bcc .out
+        lda #UP_X
+        sta leader_x
+        lda #UP_Y
+        sta leader_y
+        lda #0
+        sta underground
+        jsr travel
+        lda #<msg_up
+        ldx #>msg_up
+        jmp msg_set
+.out    rts
+
+; travel: the squad is now at (leader_x, leader_y) on the level 'underground' says: that level's
+; camera limits, the camera, the leader sprite on the leader's cell, and the view redrawn on screen A
+; (display off meanwhile, as talk_leave does). Only called with the leader standing still.
+!zone travel
+travel
+        ldx underground
+        lda lvl_lo_x,x
+        sta cam_lo_x
+        lda lvl_hi_x,x
+        sta cam_hi_x
+        lda lvl_lo_y,x
+        sta cam_lo_y
+        lda lvl_hi_y,x
+        sta cam_hi_y
+        jsr cam_for_leader
+        lda bcam_x
+        sta cam_x
+        lda bcam_y
+        sta cam_y
+        lda leader_x            ; the leader's offset from the view centre, as at a step's end
+        sec
+        sbc cam_x
+        sec
+        sbc #LEADER_COL
+        sta spr_off_x
+        lda leader_y
+        sec
+        sbc cam_y
+        sec
+        sbc #LEADER_ROW
+        sta spr_off_y
+        ldx #0                  ; spr_x = LEADER_SX + 8 * spr_off_x (signed, 9 bits)
+        lda spr_off_x
+        bpl +
+        dex
++       stx tv_hi
+        asl
+        rol tv_hi
+        asl
+        rol tv_hi
+        asl
+        rol tv_hi
+        clc
+        adc #<LEADER_SX
+        sta spr_x
+        lda tv_hi
+        adc #>LEADER_SX
+        and #1
+        sta spr_x+1
+        lda spr_off_y           ; spr_y = LEADER_SY + 8 * spr_off_y
+        asl
+        asl
+        asl
+        clc
+        adc #LEADER_SY
+        sta spr_y
+        sei
+        lda #D011_OFF
+        sta VIC_CTRL1
+        lda #0
+        sta vis_buf
+        lda #>SCREEN_A
+        jsr view_draw_full
+        lda #IRQ_TOP_LINE       ; the walking raster chain from its top again (irq_top restores $D011)
+        sta VIC_RASTER
+        lda #1
+        sta VIC_IRQ
+        cli
+        rts
+
+lvl_lo_x !byte 0, BCAM_X        ; camera limits: town, basement (pinned)
+lvl_hi_x !byte CAM_MAX_X, BCAM_X
+lvl_lo_y !byte 0, BCAM_Y
+lvl_hi_y !byte CAM_MAX_Y, BCAM_Y
+cam_lo_x !byte 0
+cam_hi_x !byte CAM_MAX_X
+cam_lo_y !byte 0
+cam_hi_y !byte CAM_MAX_Y
+underground !byte 0
+tv_hi    !byte 0
+msg_down !scr "the squad climbs down into the dark.", 0
+msg_up   !scr "the squad climbs back up into the yard.", 0
 
 ; sprite_step: move the leader sprite 1 px in glide_dir
 sprite_step

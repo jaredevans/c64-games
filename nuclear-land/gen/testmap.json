@@ -29,6 +29,9 @@
    21
   ]
  ],
- "n_passable": 18,
- "n_blocked": 49
+ "down": null,
+ "up": null,
+ "bcam": null,
+ "n_passable": 21,
+ "n_blocked": 52
 }
