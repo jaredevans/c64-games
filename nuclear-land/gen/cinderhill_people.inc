@@ -4,6 +4,7 @@ people_x0 !byte 5, 31, 53, 4, 55, 10, 30
 people_y0 !byte 16, 14, 42, 39, 16, 24, 40
 people_col !byte 3, 10, 5, 9, 4, 7, 15
 people_ptr !byte SPR_ADULT_PTR, SPR_ADULT_PTR, SPR_ADULT_PTR, SPR_ADULT_PTR, SPR_ADULT_PTR, SPR_KID_PTR, SPR_ADULT_PTR
+people_cast !byte 0, 1, 2, 3, 4, 5, 6
 people_bx0 !byte $ff, $ff, $ff, $ff, $ff, 4, $ff
 people_by0 !byte 0, 0, 0, 0, 0, 18, 0
 people_bx1 !byte 0, 0, 0, 0, 0, 17, 0

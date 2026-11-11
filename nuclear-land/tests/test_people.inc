@@ -6,6 +6,7 @@ people_x0  !byte 37, 45, 39
 people_y0  !byte 14, 12, 28
 people_col !byte 3, 10, 5       ; cyan, light red, green
 people_ptr !byte SPR_ADULT_PTR, SPR_ADULT_PTR, SPR_ADULT_PTR
+people_cast !byte $ff, $ff, $ff ; nobody has dialogue
 people_bx0 !byte $ff, $ff, $ff  ; nobody wanders
 people_by0 !byte 0, 0, 0
 people_bx1 !byte 0, 0, 0

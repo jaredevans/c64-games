@@ -4,6 +4,7 @@ people_x0 !byte 0
 people_y0 !byte 0
 people_col !byte 0
 people_ptr !byte 0
+people_cast !byte 0
 people_bx0 !byte 0
 people_by0 !byte 0
 people_bx1 !byte 0

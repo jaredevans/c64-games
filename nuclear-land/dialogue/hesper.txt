@@ -1,0 +1,48 @@
+; Hesper, the water-keeper (spec: Cast). Starts Wary, favours Maren.
+; Clue chain: WATER -> TANKS (Open) -> CORWIN, CARAVAN.
+person h
+name HESPER
+role WATER-KEEPER
+start WARY
+favours MAREN
+greet Hesper eyes you over the pump handle and says nothing.
+deflect Why would I tell you?
+unknown Never heard of it.
+
+topic NAME
+  tier WARY
+  say Hesper. I keep the WATER for this town. You can stop staring.
+topic JOB,WORK
+  tier WARY
+  say I work the PUMP. Every drop in Cinderhill passes through my hands first.
+topic PUMP
+  tier WARY
+  say Pre-war pump. The REACTOR drives it. When the reactor coughs, the pump coughs.
+topic WATER
+  tier WARY
+  say Clean water is the only thing worth a fight out here. We keep it in the TANKS.
+topic KEEPERS
+  tier WARY
+  say Warden Brandt's people. Stiff necks, but they keep thieves away from the reactor.
+topic REACTOR
+  tier GUARDED
+  say It runs the lights, the pump and the greenhouse. Lately it sputters. The KEEPERS pray to it. The DIMMERS curse it.
+  else Ask the Keepers. They think they own it.
+topic VOSS
+  tier GUARDED
+  say Abel Voss kept that reactor alive for twenty years. Then one night he was gone. Nobody looks very hard.
+  else People go missing. It happens.
+topic DIMMERS
+  tier GUARDED
+  say Tamsin's lot want the reactor shut down. No reactor, no pump. No pump, no town.
+topic CARAVAN
+  tier GUARDED
+  say Traders come up the east road and camp past the square. They pay well for water. Too well.
+topic TANKS
+  tier OPEN
+  say I measure the tanks every night. They drain faster than this town can drink. Someone is taking it. The mayor's caravan friends, I'd bet. Ask CORWIN about his CARAVAN deals.
+  else Tanks are tanks. Why do you care?
+topic CORWIN,MAYOR
+  tier OPEN
+  say The mayor smiles a lot for a man in a dry town. Corwin gets his water first. Always has.
+  else The mayor is the mayor.

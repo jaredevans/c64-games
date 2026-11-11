@@ -136,6 +136,7 @@ def convert(name):
     row('people_y0', [str(p['y']) for p in people])
     row('people_col', [str(p['colour']) for p in people])
     row('people_ptr', [SHAPE_PTR[p['shape']] for p in people])
+    row('people_cast', [str(list(CAST).index(p['letter'])) for p in people])   # cast index (dialogue)
     for i, lab in enumerate(('people_bx0', 'people_by0', 'people_bx1', 'people_by1')):
         row(lab, [str(p['box'][i]) if p['box'] else ('$ff' if i == 0 else '0') for p in people])
     row('people_name_lo', [f'<people_name_{i}' for i in range(len(people))])
