@@ -27,6 +27,7 @@ walk_init
         lda #DIR_NONE
         sta glide_dir
         lda #0
+        sta heavy_job
         sta steps_done
         sta steps_done+1
         sta bumps
@@ -62,8 +63,10 @@ walk_update
         ldy #0
         lda (zp_src),y
         cmp #BLOCK_BASE
+        bcs .bump
+        jsr person_at           ; townspeople block like walls
         bcc .go
-        inc bumps
+.bump   inc bumps
         rts
 .go     ldx cur_dir
         stx glide_dir
@@ -121,10 +124,11 @@ walk_update
         sta fine_x
         lda fine_tbl_y-1,x
         sta fine_y
-        lda glide_p             ; p=1..3: build a third of the back buffer each frame
+        lda glide_p             ; p=1..3: build a third of the back buffer each frame (walk_heavy)
         cmp #4
         bcs .noblk
-        jsr build_back_third
+        lda #HEAVY_BUILD
+        sta heavy_job
         jmp .chk
 .noblk  ldx glide_dir
         cmp flip_p,x
@@ -209,8 +213,8 @@ build_back_third
         sta view_end
         jmp view_build
 
-; flip_buffers: show the back buffer from the next frame on; its colours go to colour RAM now
-; (we are just past frame_ready, before the next frame's map band)
+; flip_buffers: show the back buffer from the next frame on; its colours go to colour RAM in this
+; frame's walk_heavy (after the sprites are placed, still before the next frame's map band)
 flip_buffers
         lda vis_buf
         eor #1
@@ -219,7 +223,25 @@ flip_buffers
         sta cam_x
         lda bcam_y
         sta cam_y
+        lda #HEAVY_COLOURS
+        sta heavy_job
+        rts
+
+; walk_heavy: this frame's long job, run by the main loop after sprite placement: a third of the
+; back buffer (glide p=1..3, ~130 raster lines, no deadline - the buffer is hidden) or the colour
+; copy of a flip frame (~105 lines, must end before the map band at raster 74)
+HEAVY_NONE    = 0
+HEAVY_BUILD   = 1
+HEAVY_COLOURS = 2
+walk_heavy
+        ldx heavy_job
+        beq +
+        lda #HEAVY_NONE
+        sta heavy_job
+        cpx #HEAVY_BUILD
+        beq build_back_third
         jmp colbuf_to_colram
++       rts
 
 ; map_cell_ptr: zp_src = map_data + zp_row*64 + zp_tmp
 map_cell_ptr

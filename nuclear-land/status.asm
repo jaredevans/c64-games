@@ -9,6 +9,7 @@
 STATUS_NAME_COL  = 13
 STATUS_METER_COL = 32
 
+!zone status_init
 status_init
         ldx #39
 -       lda status_fixed,x
@@ -21,6 +22,7 @@ status_init
         ; fall through
 
 ; status_draw: place name + meter for (leader_x, leader_y). Clobbers A, X, Y, zp_src, zp_tmp, zp_row.
+!zone status_draw
 status_draw
         ldx #0                  ; first place rect containing the leader (the last one is the map)
 -       lda leader_x
@@ -67,6 +69,7 @@ status_draw
         rts
 
 ; rad_at: A = radiation level (0..8, 8 = on a hot spot) at cell (zp_tmp, zp_row). Clobbers Y, zp_src.
+!zone rad_at
 rad_at
         jsr map_cell_ptr
         lda zp_src

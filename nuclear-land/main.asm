@@ -55,6 +55,7 @@ start
         sta frame_count
         sta frame_count+1
         jsr walk_init
+        jsr people_init
         jsr status_init         ; needs the leader's cell (walk_init)
 !ifdef STRESS {                 ; test mode: 7 more sprites whose DMA covers lines 212-213
         ldx #1
@@ -91,7 +92,22 @@ main_loop
         sta frame_ready
         jsr input_read
         jsr walk_update
+        jsr people_update
         jsr sprite_place
+!ifndef STRESS {                ; (STRESS programs sprites 1-7 itself)
+        jsr people_place
+}
+!ifdef TIMING {
+        jsr timing_note
+}
+!ifdef TIMING {
+        lda heavy_job
+        sta timing_job
+}
+        jsr walk_heavy          ; long jobs after the sprites are placed
+!ifdef TIMING {
+        jsr timing_heavy
+}
 !ifdef AUTOWALK {
         jsr tod_snapshot
 }
@@ -178,6 +194,66 @@ stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (
 !source "view.asm"
 !source "hud.asm"
 !source "status.asm"
+!source "people.asm"
+!ifdef TEST_PEOPLE {
+!source "tests/test_people.inc"
+} else {
+!ifdef TESTMAP {
+!source "gen/testmap_people.inc"
+} else {
+!source "gen/cinderhill_people.inc"
+}
+}
+!zone timing
+!ifdef TIMING {
+; Test hook: the latest raster line (wrapped: lines before 219 belong to the next frame, +312) at
+; which the main loop finished placing sprites (late_max) and finished a flip frame's colour copy
+; (colour_max)
+timing_note
+        ldx #0
+        beq timing_max
+timing_heavy
+        lda timing_job
+        cmp #HEAVY_COLOURS
+        bne +
+        ldx #2
+        bne timing_max
++       rts
+; timing_max: timing_vars[x..x+1] = max(itself, wrapped raster line now)
+timing_max
+        lda VIC_RASTER
+        ldy VIC_CTRL1
+        bpl +                   ; line >= 256: same frame
+        sta zp_tmp
+        lda #1
+        bne ++
++       cmp #219
+        bcs +
+        clc                     ; wrapped into the next frame: +312 = +$138
+        adc #$38
+        sta zp_tmp
+        lda #1
+        adc #0
+        bne ++
++       sta zp_tmp
+        lda #0
+++      sta zp_row              ; zp_row:zp_tmp = wrapped line
+        cmp timing_vars+1,x
+        bcc +++
+        bne +
+        lda zp_tmp
+        cmp timing_vars,x
+        bcc +++
++       lda zp_row
+        sta timing_vars+1,x
+        lda zp_tmp
+        sta timing_vars,x
++++     rts
+timing_vars
+late_max   !word 0
+colour_max !word 0
+timing_job !byte 0
+}
 !ifdef TESTMAP {
 !source "gen/testmap.inc"
 } else {

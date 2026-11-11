@@ -30,6 +30,8 @@ SCREEN_B    = $c400
 CHARSET     = $c800
 SPRITES     = $e000
 SPR_LEADER_PTR = (SPRITES - VIC_BANK) / 64          ; 128
+SPR_ADULT_PTR  = SPR_LEADER_PTR                     ; townspeople use the leader's figure...
+SPR_KID_PTR    = SPR_LEADER_PTR + 1                 ; ...except Pip
 D018_A      = ((SCREEN_A - VIC_BANK) / $400) << 4 | ((CHARSET - VIC_BANK) / $800) << 1
 D018_B      = ((SCREEN_B - VIC_BANK) / $400) << 4 | ((CHARSET - VIC_BANK) / $800) << 1
 
@@ -96,6 +98,15 @@ spr_x       = $2b       ; 2 bytes: leader sprite X (VIC coordinates)
 spr_y       = $2d       ; leader sprite Y
 spr_off_x   = $2e       ; leader's cell offset from the view centre (signed), updated per step
 spr_off_y   = $2f
+pp_i        = $30       ; people.asm scratch
+pp_dir      = $31
+pp_dx       = $32
+pp_hi       = $33
+pp_msb      = $34
+pp_bit      = $35
+spr_enable  = $36       ; $D015 shadow (bit 0 = leader, bits 1-7 = people)
+lfsr        = $37       ; people_update's random source
+heavy_job   = $38       ; walk_heavy's job this frame (HEAVY_*)
 
 ; ---- directions ----
 DIR_UP    = 0
