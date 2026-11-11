@@ -62,9 +62,23 @@ the Market Row pump house, and the screen changes:
 - RETURN on an empty line takes you back to the town exactly as you left it, and Hesper remembers
   you.
 
-The other townspeople don't talk yet; T next to them still says so.
+**Milestone 4: the whole cast talks (done).** Everyone in town now has a conversation, written in
+`dialogue/` (the story and the clue chain are in `dialogue/README.md`):
 
-**Next:** dialogue for the whole cast, written out for review before it goes in.
+- Brandt at the reactor gate, Tamsin at the greenhouse, Jory at the west-edge shack, Odalys at the
+  caravan camp, Pip on Market Row and Mayor Corwin at the town hall, plus new topics for Hesper.
+- Each has their own C64 portrait, with eye whites and coloured irises drawn as hardware sprites
+  over the bitmap.
+- Portraits load from disk when a conversation opens (one file per person on the game disk), so
+  the game is now a D64; "you approach <name>..." shows while it loads. On a stock 1541 that
+  takes about 9 seconds; fastload cartridges, JiffyDOS, SD2IEC, the C64 Ultimate's drive and
+  emulators are much quicker. With an REU (RAM Expansion Unit, real or emulated), each face is
+  kept there after its first load, so going back to someone is instant.
+- Jory stays closed until Maren treats his fever, and Voss's conversation is written but he can't be
+  found yet: both wait on milestone 5.
+
+**Next (milestone 5):** the squad's skills at the skill spots (Rook's tracks, Dials's valve and
+hatch, Vesna at the gate, Maren with Jory), the way down to Voss, and the ending.
 
 ## Running it
 
@@ -73,11 +87,13 @@ From `nuclear-land/`:
 ```sh
 mkdir -p build
 acme -f cbm -o build/nland.prg main.asm
-x64sc -pal -autostartprgmode 1 -autostart "$PWD/build/nland.prg"
+python3 tools/make_disk.py            # build/nland.d64: the game plus one portrait file per person
+x64sc -pal -autostart "$PWD/build/nland.d64"
 ```
 
-Pass an **absolute** path to the PRG — on macOS the `x64sc` wrapper starts VICE from inside the
-app bundle, so a relative path isn't found. The game is PAL-only; keep `-pal` if your VICE is
+The talking screen loads its portrait from the disk the game was started from, so run the D64,
+not the PRG on its own (without the disk, portraits are black). Pass an **absolute** path — on
+macOS the `x64sc` wrapper starts VICE from inside the app bundle, so a relative path isn't found. The game is PAL-only; keep `-pal` if your VICE is
 set to NTSC.
 
 ### Controls

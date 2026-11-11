@@ -38,6 +38,8 @@ def main():
     bad = [y for y in range(152) if got[y] != want[y]]
     vice.check(not bad, f'panel matches: header + last 15 lines (bad rows {bad[:8]})')
     portrait = make_portrait.render((vice.NL / 'gen' / 'portrait_hesper.bin').read_bytes())
+    for (x, y), c in make_portrait.render_eyes((vice.NL / 'gen' / 'eyes_hesper.bin').read_bytes()).items():
+        portrait[y][x] = c                                  # the eye sprites, drawn over the bitmap
     pg = [[nearest_index(shot.getpixel((x0 + x, y0 + y))) for x in range(128)] for y in range(152)]
     vice.check(pg == portrait, 'portrait untouched by the scrolling conversation')
 

@@ -42,7 +42,23 @@ def build(defines=None):
     r = subprocess.run(cmd, cwd=NL, capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError(f'acme failed:\n{r.stdout}{r.stderr}')
+    import make_disk
+    make_disk.build(prg, prg.with_suffix('.d64'))   # the portraits the talking screen loads
     return prg
+
+
+def drive_args(prg, truedrive=False):
+    """Attach `prg`'s game disk (built next to it by build()) as drive 8. By default the drive is
+    VICE's KERNAL-level device, so loads are instant and test timing doesn't depend on them;
+    truedrive=True emulates a real 1541, serial bus and load time included."""
+    d64 = Path(prg).with_suffix('.d64')
+    if not d64.exists():
+        return []
+    if truedrive:   # the 1541's own CPU and the serial bus; no KERNAL traps, also not during autostart
+        drive = ['-drive8truedrive', '+trapdevice8', '+busdevice8', '+autostart-handle-tde']
+    else:           # KERNAL traps: LOAD is served at once from the image
+        drive = ['+drive8truedrive', '-trapdevice8', '-busdevice8']
+    return [*drive, '-8', str(d64)]
 
 
 def labels(prg):
@@ -57,7 +73,7 @@ def labels(prg):
     return out
 
 
-def screenshot(prg, cycles):
+def screenshot(prg, cycles, truedrive=False, disk=True, extra=()):
     """Run `prg` headless for `cycles` CPU cycles and return the exit screenshot.
 
     -limitcycles stops mid-frame: rows the raster hasn't reached yet still show the previous frame.
@@ -66,8 +82,10 @@ def screenshot(prg, cycles):
     with tempfile.TemporaryDirectory() as td:
         png = os.path.join(td, 'shot.png')
         # VIDEO (with -default) must come first: -default resets every option given before it
-        subprocess.run([X64SC, *VIDEO, '-warp', '-limitcycles', str(int(cycles)), '-autostartprgmode', '1',
-                        '-sounddev', 'dummy', '-exitscreenshot', png, '-autostart', str(prg)],
+        drive = drive_args(prg, truedrive) if disk else ['-drive8type', '0', '+busdevice8']   # no drive 8
+        subprocess.run([X64SC, *VIDEO, *drive, *extra, '-warp', '-limitcycles', str(int(cycles)),
+                        '-autostartprgmode', '1', '-sounddev', 'dummy', '-exitscreenshot', png,
+                        '-autostart', str(prg)],
                        capture_output=True, timeout=600)
         if not os.path.exists(png):
             raise RuntimeError('VICE produced no screenshot')
@@ -119,12 +137,12 @@ def _recv_exact(s, n):
     return buf
 
 
-def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=()):
+def memread(prg, addr, length, wait_s=4.0, warp=True, port=6510, extra_reads=(), extra=()):
     """Launch VICE with the binary monitor, let `prg` run `wait_s` seconds, then read memory.
 
     Returns bytes for (addr, length); if `extra_reads` is a list of (wait_s, addr, length) the
     function returns a list of byte strings, one per read, taken at those later times."""
-    args = [X64SC, *VIDEO, '-autostartprgmode', '1', '-sounddev', 'dummy', '-binarymonitor',
+    args = [X64SC, *VIDEO, *drive_args(prg), *extra, '-autostartprgmode', '1', '-sounddev', 'dummy', '-binarymonitor',
             '-binarymonitoraddress', f'ip4://127.0.0.1:{port}', '-autostart', str(prg)]
     if warp:
         args.insert(1, '-warp')

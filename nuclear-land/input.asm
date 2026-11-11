@@ -485,6 +485,30 @@ walk_script
         +press 2, 2, K2_T
         +idle 1
 }
+!if AUTOWALK = 27 {             ; tests/test_talk_cast.py: up the road to (32,14) beside Brandt, Dials leads, T
+        +hold 80, K_NONE, K_NONE, K4_I, K_NONE, K_NONE       ; (32,24) -> (32,14)
+        +press 2, 7, K7_2
+        +idle 4
+        +press 2, 2, K2_T
+        +idle 1
+}
+!if AUTOWALK = 28 {             ; tests/test_portrait_reu.py: Hesper, Brandt, Hesper again (TYPESCRIPT 10 leaves twice)
+        +to_hesper
+        +press 2, 7, K7_2
+        +idle 4
+        +press 2, 2, K2_T
+        +idle 1
+        +hold 40, K_NONE, K_NONE, K4_K, K_NONE, K_NONE       ; (5,17) -> (5,22)
+        +hold 216, K_NONE, K_NONE, K_NONE, K5_L, K_NONE      ; east along the street to (32,22)
+        +hold 64, K_NONE, K_NONE, K4_I, K_NONE, K_NONE       ; up the road to (32,14), beside Brandt
+        +press 2, 2, K2_T
+        +idle 1
+        +hold 64, K_NONE, K_NONE, K4_K, K_NONE, K_NONE       ; (32,22)
+        +hold 216, K_NONE, K_NONE, K4_J, K_NONE, K_NONE      ; (5,22)
+        +hold 40, K_NONE, K_NONE, K4_I, K_NONE, K_NONE       ; (5,17), below Hesper
+        +press 2, 2, K2_T
+        +idle 1
+}
 !if AUTOWALK = 19 {             ; Maren leads
         +to_hesper
         +press 2, 1, K1_3

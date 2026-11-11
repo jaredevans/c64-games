@@ -38,6 +38,7 @@ start
         lda #>SCREEN_B
         jsr clear_screen
         jsr clear_colram
+        jsr reu_detect          ; talk.asm: an REU caches portraits
         lda #MAP_START_X - LEADER_COL       ; maps put the start where the camera is unclamped
         sta cam_x
         lda #MAP_START_Y - LEADER_ROW
@@ -283,6 +284,10 @@ timing_job !byte 0
 !source "gen/cinderhill.inc"
 }
 
-!if * > COLBUF {
+; the talking screen's portrait and eye sprites, loaded from disk (talk.asm portrait_load)
+PORTRAIT_BUF  = *
+PORTRAIT_EYES = PORTRAIT_BUF + 2736             ; after the 2432 bitmap + 304 colour bytes
+PORTRAIT_END  = PORTRAIT_EYES + 1 + 4 * 68      ; sprite count, up to 4 sprites of 68 bytes
+!if PORTRAIT_END > COLBUF {
         !error "code/data overran COLBUF ($B800)"
 }

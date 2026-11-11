@@ -1,8 +1,8 @@
-# Dialogue draft (milestone 4)
+# Dialogue (milestone 4)
 
-This draft covers the whole cast, for review before any of it is built into the game. The build ignores
-this folder: `tools/make_dialogue.py` only reads `dialogue/*.txt`, so the live game still has
-just Hesper. When the text is approved, milestone 5 moves these files up into `dialogue/`.
+The whole cast's conversations, one file per person, built into the game by
+`tools/make_dialogue.py` (it reads `dialogue/*.txt`). Written as a draft for review, then moved
+in as it was. The milestone 5 mechanics below aren't built yet.
 
 ## How to read a script
 
@@ -19,8 +19,8 @@ Each file is one person, in the same format as the built `dialogue/hesper.txt`:
 Words in CAPITALS in a `say` line join the squad's Known list when the answer is given. Nothing
 else is capitalised, so no word gets added by accident. All text wraps to 24 columns in the game.
 
-`hesper.txt` here is the built M3 file plus new topics at the end, marked NEW. The lines you have
-already played are unchanged. The new topics answer words the squad learns from other people.
+`hesper.txt` is the M3 file plus new topics at the end, marked NEW. The M3 lines are unchanged.
+The new topics answer words the squad learns from other people.
 
 ## The clue chain
 
@@ -99,9 +99,9 @@ The script format doesn't express these. They're written here so the review cove
   answers and 2 from skill spots. The two Known rows show about the newest dozen. Older words stay
   known and still work when typed.
 - **Topics:** 155 across the 8 people. Hesper has the most at 27, under the limit of 32.
-- **Size:** about 14.7 KB of text plus 2.4 KB of tables, against about 25 KB free in the current
-  build. Six more portraits would need about 16 KB. Both won't fit as they are, so milestone 5
-  will need to pack the text or compress the portraits, or both. Trimming lines here also helps.
+- **Size:** about 14.7 KB of text plus 2.4 KB of tables. That and all eight portraits didn't fit
+  in memory together, so portraits now load from disk when a conversation opens. With the whole
+  cast's dialogue built in, about 8 KB is left for milestone 5.
 - **Checks:** the draft passes all of the tool's own limits:
   - 24 columns per line;
   - 14 lines per answer;

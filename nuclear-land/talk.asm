@@ -7,7 +7,8 @@
 ; the right border), so the row-19 badline on line 203 already fetches text.
 ;
 ; The portrait's eye whites and irises are hardware sprites over the bitmap (a hi-res cell can't
-; hold skin, black and white): see eyes_setup.
+; hold skin, black and white): see eyes_setup. Portraits and eyes don't fit in memory with the
+; whole cast's dialogue, so each is loaded from disk on entering (portrait_load).
 ;
 ; Entering trashes the walking screen buffers and the sprite shapes ($E000 is the bitmap);
 ; talk_leave rebuilds everything from game state.
@@ -28,6 +29,21 @@ ROW_KNOWN    = 19
 ROW_LEADS    = 21
 ROW_PROMPT   = 22
 ROW_THINT    = 23
+REU_CMD      = $df01            ; RAM Expansion Unit (1700/1750/1764, or an emulated one)
+REU_C64      = $df02            ; 2 bytes: C64 address
+REU_ADDR     = $df04            ; 3 bytes: REU address (lo, hi, bank)
+REU_LEN      = $df07            ; 2 bytes: length
+REU_CTRL     = $df0a            ; address control: 0 = both addresses count up
+REU_STASH    = $90              ; C64 -> REU, now (bit 4: don't wait for a write to $FF00)
+REU_FETCH    = $91              ; REU -> C64, now
+REU_SLOT     = $1000            ; REU bytes per cached face (bank 0, slot = cast index)
+ROW_LOADING  = 11
+SETMSG       = $ff90
+SETLFS       = $ffba
+SETNAM       = $ffbd
+LOAD         = $ffd5            ; through the $0330 vector, so fastload cartridges speed it up
+KSTATUS      = $90              ; KERNAL I/O status
+KDEVICE      = $ba              ; the device the game was loaded from
 SCNKEY       = $ff9f
 GETIN        = $ffe4
 KEYBUF       = $0277
@@ -62,6 +78,7 @@ talk_enter
         lda #PORTRAIT_OF
         sta talk_person
 }
+        jsr portrait_load
         jsr portrait_blit
         jsr eyes_setup
         jsr talk_meet
@@ -120,14 +137,240 @@ fill_1k
         bne -
         rts
 
+; portrait_load: the talk person's portrait and eye sprites into PORTRAIT_BUF: the file
+; "FACE <cast letter>" (tools/make_disk.py) is the portrait (gen/portrait_<name>.bin) followed by
+; its eye sprites (gen/eyes_<name>.bin). Skipped when that person's face is already there. With an
+; REU, a face loaded once is kept there and fetched by DMA after that, so only the first visit to
+; each person reads the disk. While the disk is read, the screen shows "you approach <name>..."
+; (plain text mode: the KERNAL's serial routines CLI, so the raster split can't run). If the load
+; fails the portrait is black and has no eye sprites, and the next visit tries again.
+; Called with the display off and IRQs disabled; leaves them so.
+!zone portrait_load
+portrait_load
+        lda talk_person
+        cmp face_loaded
+        bne +
+        rts                     ; already there
++       sta face_loaded
+        tax
+        lda reu_present
+        beq .disk
+        lda eye_bit_8,x
+        and face_cached
+        beq .disk
+        jsr face_slot           ; cached: one DMA, no disk
+        lda #REU_FETCH
+        jmp reu_xfer
+.disk   lda cast_letter,x
+        sta face_name + FACE_NAME_LEN - 1
+        lda #0                  ; the KERNAL's serial routines CLI: no raster IRQs while loading
+        sta VIC_IRQEN
+        lda #1
+        sta VIC_IRQ
+        jsr loading_show
+        lda #0
+        jsr SETMSG              ; no "SEARCHING FOR" / "LOADING"
+        lda KDEVICE
+        cmp #8
+        bcs +
+        lda #8                  ; started some other way (injected): assume drive 8
++       tax
+        lda #1
+        ldy #0                  ; secondary address 0: load to X/Y, not the file's own address
+        jsr SETLFS
+        lda #FACE_NAME_LEN
+        ldx #<face_name
+        ldy #>face_name
+        jsr SETNAM
+        lda #0                  ; load, not verify
+        ldx #<PORTRAIT_BUF
+        ldy #>PORTRAIT_BUF
+        jsr LOAD
+        sei
+        php
+        lda #D011_OFF
+        sta VIC_CTRL1
+        inc face_disk_loads
+        plp
+        bcs .fail
+        lda KSTATUS
+        and #%10000011          ; device not present, timeouts (bit 6 = end of file is normal)
+        bne .fail
+        lda reu_present         ; keep it for next time
+        beq .on
+        ldx talk_person
+        jsr face_slot
+        lda #REU_STASH
+        jsr reu_xfer
+        ldx talk_person
+        lda eye_bit_8,x
+        ora face_cached
+        sta face_cached
+        jmp .on
+.fail   lda #$ff                ; try again next time
+        sta face_loaded
+        lda #<PORTRAIT_BUF      ; black portrait, no eyes
+        sta zp_dst
+        lda #>PORTRAIT_BUF
+        sta zp_dst+1
+        ldx #>(PORTRAIT_EYES + 1 - PORTRAIT_BUF + 255)
+        ldy #0
+        tya
+-       sta (zp_dst),y
+        iny
+        bne -
+        inc zp_dst+1
+        dex
+        bne -
+.on     lda #1
+        sta VIC_IRQEN
+        sta VIC_IRQ
+.out    rts
+
+; loading_show: "you approach <name>..." on row ROW_LOADING of the (otherwise empty) text screen,
+; and that screen on: plain text mode, steady without IRQs
+!zone loading_show
+loading_show
+        ldx talk_people_i
+        lda people_name_lo,x
+        sta zp_src
+        lda people_name_hi,x
+        sta zp_src+1
+        ldx #0
+-       lda txt_approach,x
+        beq +
+        sta TALK_TEXT + ROW_LOADING*40 + 8,x
+        inx
+        bne -
++       ldy #0
+-       lda (zp_src),y
+        beq +
+        sta TALK_TEXT + ROW_LOADING*40 + 8,x
+        inx
+        iny
+        bne -
++       ldy #0
+-       lda txt_dots,y
+        beq +
+        sta TALK_TEXT + ROW_LOADING*40 + 8,x
+        inx
+        iny
+        bne -
++       ldx #39
+        lda #COL_LGREY
+-       sta COLRAM + ROW_LOADING*40,x
+        dex
+        bpl -
+        lda #D018_B
+        sta VIC_MEM
+        lda #D016_STD
+        sta VIC_CTRL2
+        lda #D011_TXT
+        sta VIC_CTRL1
+        rts
+
+; face_slot: REU transfer of PORTRAIT_BUF..PORTRAIT_END for cast index X (slot X * REU_SLOT)
+face_slot
+        lda #<PORTRAIT_BUF
+        sta reu_c64
+        lda #>PORTRAIT_BUF
+        sta reu_c64+1
+        lda #0
+        sta reu_off
+        txa
+        asl
+        asl
+        asl
+        asl
+        sta reu_off+1           ; X * $1000
+        lda #<(PORTRAIT_END - PORTRAIT_BUF)
+        sta reu_len
+        lda #>(PORTRAIT_END - PORTRAIT_BUF)
+        sta reu_len+1
+        rts
+
+; reu_xfer: A = REU_STASH or REU_FETCH: reu_len bytes between C64 reu_c64 and REU bank 0 reu_off.
+; The CPU waits while the REU copies.
+!zone reu_xfer
+reu_xfer
+        pha
+        lda reu_c64
+        sta REU_C64
+        lda reu_c64+1
+        sta REU_C64+1
+        lda reu_off
+        sta REU_ADDR
+        lda reu_off+1
+        sta REU_ADDR+1
+        lda #0
+        sta REU_ADDR+2
+        sta REU_CTRL
+        lda reu_len
+        sta REU_LEN
+        lda reu_len+1
+        sta REU_LEN+1
+        pla
+        sta REU_CMD
+        rts
+
+; reu_detect (at start): reu_present = 1 if an REU answers. Its address registers must read back
+; what was written (without an REU, $DFxx reads are whatever was last on the bus), and a byte
+; stashed and fetched back must survive, twice with different values.
+!zone reu_detect
+reu_detect
+        lda #0
+        sta reu_present
+        ldx #3
+-       txa
+        eor #$a5
+        sta REU_C64,x
+        dex
+        bpl -
+        ldx #3
+-       txa
+        eor #$a5
+        cmp REU_C64,x
+        bne .out
+        dex
+        bpl -
+        lda #<reu_probe
+        sta reu_c64
+        lda #>reu_probe
+        sta reu_c64+1
+        lda #0
+        sta reu_off
+        lda #$f0                ; REU $00F000: above the 8 face slots
+        sta reu_off+1
+        lda #1
+        sta reu_len
+        lda #0
+        sta reu_len+1
+        lda #$5a
+        jsr .probe
+        bne .out
+        lda #$a5
+        jsr .probe
+        bne .out
+        inc reu_present
+.out    rts
+.probe  sta reu_probe           ; stash A, clear it, fetch it back: Z = 1 if it survived
+        pha
+        lda #REU_STASH
+        jsr reu_xfer
+        lda #0
+        sta reu_probe
+        lda #REU_FETCH
+        jsr reu_xfer
+        pla
+        cmp reu_probe
+        rts
+
 ; portrait_blit: the talk person's 16x19-cell portrait into bitmap columns 0-15
 !zone portrait_blit
 portrait_blit
-        lda talk_person
-        tax
-        lda portrait_lo,x
+        lda #<PORTRAIT_BUF
         sta zp_src
-        lda portrait_hi,x
+        lda #>PORTRAIT_BUF
         sta zp_src+1
         lda #<TALK_BITMAP
         sta zp_dst
@@ -456,7 +699,7 @@ sprites_restore
         bne -
 +       rts
 
-; eyes_setup: the talk person's eye sprites (gen/eyes_<name>.bin: count, then per sprite x, y,
+; eyes_setup: the talk person's eye sprites (PORTRAIT_EYES: count, then per sprite x, y,
 ; colour, 0 and 64 bytes of data; x, y are portrait pixels). Saves the walking screen's sprite
 ; registers first (eyes_restore puts them back). Sets talk_spren, which talk_irq_top enables.
 !zone eyes_setup
@@ -480,12 +723,10 @@ eyes_setup
         sta VIC_SPRXEXP
         sta VIC_SPRYEXP
         sta VIC_SPRPRI          ; in front of the bitmap
-        ldx talk_person
-        lda eyes_hi,x
-        beq .out                ; no eyes for this person
-        sta zp_src+1
-        lda eyes_lo,x
+        lda #<PORTRAIT_EYES     ; loaded with the portrait (count 0 if the load failed)
         sta zp_src
+        lda #>PORTRAIT_EYES
+        sta zp_src+1
         ldy #0
         lda (zp_src),y
         sta eye_n
@@ -646,6 +887,12 @@ ts_text
 !if TYPESCRIPT = 7 {            ; tests/test_talk_leave.py: ask once, leave
         !pet "name", 13, 13
 }
+!if TYPESCRIPT = 10 {           ; tests/test_portrait_reu.py: leave the first two talks at once
+        !byte 13, 13
+}
+!if TYPESCRIPT = 9 {            ; tests/test_talk_cast.py: Brandt
+        !pet "name", 13, "gate", 13, "voss", 13
+}
 !if TYPESCRIPT = 3 {            ; tests/test_talk_input.py: junk, 14 letters, 3 DEL, RETURN, DEL, RETURN
         !pet "12!x", 13, "abcdefghijklmn", 20, 20, 20, 13, 20, 13
 }
@@ -656,27 +903,20 @@ ts_text
 }
 
 ; ---- data ----
-; portraits and eye sprites by cast index (h b t j o p c v, as in tools/make_map.py + Voss)
-portrait_lo !byte <portrait_h, <portrait_b, <portrait_t, <portrait_j, <portrait_o, <portrait_p, <portrait_c, <portrait_v
-portrait_hi !byte >portrait_h, >portrait_b, >portrait_t, >portrait_j, >portrait_o, >portrait_p, >portrait_c, >portrait_v
-eyes_lo     !byte <eyes_h, <eyes_b, <eyes_t, <eyes_j, <eyes_o, <eyes_p, <eyes_c, <eyes_v
-eyes_hi     !byte >eyes_h, >eyes_b, >eyes_t, >eyes_j, >eyes_o, >eyes_p, >eyes_c, >eyes_v
-portrait_h !binary "gen/portrait_hesper.bin"
-portrait_b !binary "gen/portrait_Ilse-Brandt.bin"
-portrait_t !binary "gen/portrait_Tamsin-Reyes.bin"
-portrait_j !binary "gen/portrait_Jory-Platt.bin"
-portrait_o !binary "gen/portrait_Odalys-Finch.bin"
-portrait_p !binary "gen/portrait_Pip.bin"
-portrait_c !binary "gen/portrait_Silas-Corwin.bin"
-portrait_v !binary "gen/portrait_Abel-Voss.bin"
-eyes_h     !binary "gen/eyes_hesper.bin"
-eyes_b     !binary "gen/eyes_Ilse-Brandt.bin"
-eyes_t     !binary "gen/eyes_Tamsin-Reyes.bin"
-eyes_j     !binary "gen/eyes_Jory-Platt.bin"
-eyes_o     !binary "gen/eyes_Odalys-Finch.bin"
-eyes_p     !binary "gen/eyes_Pip.bin"
-eyes_c     !binary "gen/eyes_Silas-Corwin.bin"
-eyes_v     !binary "gen/eyes_Abel-Voss.bin"
+cast_letter !text "HBTJOPCV"     ; by cast index (tools/make_map.py CAST, then Voss)
+face_name   !text "FACE H"       ; the last letter is the cast letter
+FACE_NAME_LEN = 6
+face_loaded !byte $ff           ; cast index whose face is in PORTRAIT_BUF ($ff: none)
+face_cached !byte 0             ; bit per cast index: that face is in the REU
+face_disk_loads !byte 0         ; faces read from disk (tests)
+reu_present !byte 0
+reu_probe   !byte 0
+reu_c64     !word 0
+reu_off     !word 0
+reu_len     !word 0
+eye_bit_8   !byte 1, 2, 4, 8, 16, 32, 64, 128
+txt_approach !scr "you approach ", 0
+txt_dots    !scr "...", 0
 eye_mem_lo  !byte 0, 64, 128, 192
 eye_bit     !byte 1, 2, 4, 8
 eye_n       !byte 0
