@@ -39,23 +39,19 @@ def scenario(name, script, autowalk, leader, cam_y, ref, mp, glyph, colors):
     white = sum(1 for x in range(box[0], box[0] + box[2]) for y in range(box[1], box[1] + box[3])
                 if end.getpixel((x0 + x, y0 + y)) == (255, 255, 255))
     vice.check(white >= 45, f'{name}: whole leader sprite visible at band row {row} ({white} white px)')
-    # 24 frames from just before the script starts (~90 frames before the 5M-cycle mark), an odd
-    # stride apart so they span the whole walk and hit every glide phase
+    # 24 frames, an odd stride apart (every glide phase), from 60 frames before the 5M-cycle mark:
+    # the script starts ~90 frames before it, and boot timing varies by a few frames between VICE
+    # runs (each screenshot is its own run), so -60 is safely after init in every run
     stride = (walk + 40) // 24 | 1
-    bad = seen = 0
+    bad = 0
     for k in range(24):
-        s = vice.screenshot(prg, 5_000_000 + (k * stride - 100) * vice.CYCLES_PER_FRAME)
-        ok = gap_black(s) and vice.band_pixels(s, (0, 1)) == vice.band_pixels(ref, (0, 1)) and \
-            vice.band_pixels(s, (21, 25)) == vice.band_pixels(ref, (21, 25))
-        if not seen and not ok:
-            continue                    # BASIC boot screen / game init before the IRQ chain runs
-        seen += 1
-        if not ok:
+        s = vice.screenshot(prg, 5_000_000 + (k * stride - 60) * vice.CYCLES_PER_FRAME)
+        if not (gap_black(s) and vice.band_pixels(s, (0, 1)) == vice.band_pixels(ref, (0, 1)) and
+                vice.band_pixels(s, (21, 25)) == vice.band_pixels(ref, (21, 25))):
             bad += 1
-            print(f'  bad frame {k * stride - 100:+d}')
+            print(f'  bad frame {k * stride - 60:+d}')
             s.save(vice.BUILD / f'edge_clamp_{name}_bad{k}.png')
-    vice.check(seen >= 20 and bad == 0,
-               f'{name}: gap rows black, status + HUD untouched in {seen} frames across the walk ({bad} bad)')
+    vice.check(bad == 0, f'{name}: gap rows black, status + HUD untouched in 24 frames across the walk ({bad} bad)')
     m = vice.memread(prg, lab['leader_x'], 2, wait_s=8.0)
     c = vice.memread(prg, lab['cam_x'], 2, wait_s=8.0)
     vice.check((tuple(m), tuple(c)) == (want['leader'], want['cam']),
