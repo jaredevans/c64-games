@@ -18,8 +18,8 @@ def black_rows(shot, rows):
 
 
 def main():
-    ref = vice.screenshot(vice.build(), 5_000_000)
-    prg = vice.build({'AUTOWALK': 4})       # 21x11 loop: right, down, left, up, forever
+    ref = vice.screenshot(vice.build({'TESTMAP': 1}), 5_000_000)
+    prg = vice.build({'TESTMAP': 1, 'AUTOWALK': 4})       # 21x11 loop: right, down, left, up, forever
     base = 5_000_000 + 150 * vice.CYCLES_PER_FRAME
     bad_strip = bad_edge = 0
     n = 48

@@ -16,11 +16,11 @@ SPRITE_BOX = (19 * 8, 11 * 8 - 8, 32, 24)
 
 
 def main():
-    mp, glyph, colors = load_assets()
+    mp, glyph, colors = load_assets('testmap')
     want = simulate(SCRIPT, mp)
     vice.check(want['steps'] == 10 and want['bumps'] >= 1, f'model agrees with the plan: {want}')
-    ref = vice.screenshot(vice.build(), 5_000_000)
-    prg = vice.build({'AUTOWALK': 1})
+    ref = vice.screenshot(vice.build({'TESTMAP': 1}), 5_000_000)
+    prg = vice.build({'TESTMAP': 1, 'AUTOWALK': 1})
     lab = vice.labels(prg)
     total = sum(n for n, _ in SCRIPT) + 100
     shot = vice.screenshot(prg, 5_000_000 + total * vice.CYCLES_PER_FRAME)

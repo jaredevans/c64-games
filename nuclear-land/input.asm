@@ -280,6 +280,15 @@ walk_script
         +hold 30, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
         +idle 1
 }
+!if AUTOWALK = 11 {             ; tests/test_edge_clamp_ns.py: I to the north wall, then bump it
+        +hold 144, K_NONE, K_NONE, K4_I, K_NONE, K_NONE
+        +idle 1
+}
+!if AUTOWALK = 12 {             ; tests/test_edge_clamp_ns.py: L to x=40, K to the south wall, bump
+        +hold 88, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
+        +hold 216, K_NONE, K_NONE, K4_K, K_NONE, K_NONE
+        +idle 1
+}
 !if AUTOWALK = 4 {              ; tests/test_long_run_fps.py: a 21x11 loop forever
         +hold 160, K_NONE, K_NONE, K_NONE, K5_L, K_NONE                ; right 20
         +hold 80, K_NONE, K_NONE, K4_K, K_NONE, K_NONE                 ; down 10

@@ -12,9 +12,9 @@ GAP = range(160, 168)          # display rows below the map (raster 211-218): mu
 
 
 def main():
-    ref = vice.screenshot(vice.build(), 5_000_000)
+    ref = vice.screenshot(vice.build({'TESTMAP': 1}), 5_000_000)
     for fy in range(8):
-        shot = vice.screenshot(vice.build({'STRESS': 1, 'STRESS_NOPS': 10, 'FIXED_FY': fy}), 5_000_000)
+        shot = vice.screenshot(vice.build({'TESTMAP': 1, 'STRESS': 1, 'STRESS_NOPS': 10, 'FIXED_FY': fy}), 5_000_000)
         x0, y0 = vice.screen_box(shot)
         ink = [(x, y) for y in GAP for x in range(8, 311) if shot.getpixel((x0 + x, y0 + y)) != (0, 0, 0)]
         # Known, bounded: with sprite DMA stalling the CPU across the start of line 211, the

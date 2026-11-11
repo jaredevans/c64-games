@@ -20,9 +20,9 @@ CAM_MAX_Y = MAP_H - MAP_ROWS
 GLIDE_FRAMES = 8
 
 walk_init
-        lda #START_CX + LEADER_COL
+        lda #MAP_START_X
         sta leader_x
-        lda #START_CY + LEADER_ROW
+        lda #MAP_START_Y
         sta leader_y
         lda #DIR_NONE
         sta glide_dir
@@ -215,7 +215,7 @@ flip_buffers
         sta cam_y
         jmp colbuf_to_colram
 
-; map_cell_ptr: zp_src = testmap + zp_row*64 + zp_tmp
+; map_cell_ptr: zp_src = map_data + zp_row*64 + zp_tmp
 map_cell_ptr
         lda #0
         sta zp_src+1
@@ -229,10 +229,10 @@ map_cell_ptr
         bcc +
         inc zp_src+1
 +       clc
-        adc #<testmap
+        adc #<map_data
         sta zp_src
         lda zp_src+1
-        adc #>testmap
+        adc #>map_data
         sta zp_src+1
         rts
 

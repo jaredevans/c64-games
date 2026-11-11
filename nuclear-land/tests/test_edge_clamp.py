@@ -16,7 +16,7 @@ EAST = [(250, RIGHT), (30, RIGHT), (1, None)]   # must match AUTOWALK=5
 def scenario(name, script, autowalk, leader, mp, glyph, colors):
     want = simulate(script, mp)
     vice.check(want['leader'] == leader and want['bumps'] >= 1, f'{name} model: {want}')
-    prg = vice.build({'AUTOWALK': autowalk})
+    prg = vice.build({'TESTMAP': 1, 'AUTOWALK': autowalk})
     lab = vice.labels(prg)
     shot = vice.screenshot(prg, 5_000_000 + 400 * vice.CYCLES_PER_FRAME)
     shot.save(vice.BUILD / f'edge_clamp_{name}.png')
@@ -37,7 +37,7 @@ def scenario(name, script, autowalk, leader, mp, glyph, colors):
 
 
 def main():
-    mp, glyph, colors = load_assets()
+    mp, glyph, colors = load_assets('testmap')
     scenario('west', WEST, 3, (1, 19), mp, glyph, colors)
     scenario('east', EAST, 5, (62, 19), mp, glyph, colors)
 

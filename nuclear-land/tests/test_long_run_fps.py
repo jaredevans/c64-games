@@ -7,7 +7,7 @@ import vice  # noqa: E402
 
 
 def main():
-    prg = vice.build({'AUTOWALK': 4})
+    prg = vice.build({'TESTMAP': 1, 'AUTOWALK': 4})
     lab = vice.labels(prg)
     # tod_snap = frame_count lo/hi + CIA2 timer B lo/hi, which counts down once per 65536 emulated
     # CPU cycles. This measures fps in C64 time; wall-clock time is useless here because VICE paces
@@ -19,7 +19,7 @@ def main():
     vice.check(secs >= 20, f'measured over {secs:.1f} emulated seconds ({ticks} timer ticks)')
     fps = frames / secs
     vice.check(abs(fps - 50.125) <= 0.5, f'{fps:.2f} fps in emulated time (PAL 50.12)')
-    ref = vice.screenshot(vice.build(), 5_000_000)
+    ref = vice.screenshot(vice.build({'TESTMAP': 1}), 5_000_000)
     shot = vice.screenshot(prg, 177_000_000)
     shot.save(vice.BUILD / 'long_run.png')
     vice.check(vice.band_pixels(shot, (21, 25)) == vice.band_pixels(ref, (21, 25)),

@@ -7,7 +7,7 @@ import vice  # noqa: E402
 
 
 def main():
-    prg = vice.build({'AUTOWALK': 2})
+    prg = vice.build({'TESTMAP': 1, 'AUTOWALK': 2})
     lab = vice.labels(prg)
     g = lab['GLIDE_FRAMES']
     mem = vice.memread(prg, lab['steps_done'], 2, wait_s=6.0)

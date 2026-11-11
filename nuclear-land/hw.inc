@@ -44,8 +44,6 @@ VIEW_COLS   = 40
 ; ---- map ----
 MAP_W       = 64
 MAP_H       = 48
-START_CX    = 10
-START_CY    = 10
 LEADER_COL  = 19        ; leader's band cell when the camera is free
 LEADER_ROW  = 9
 

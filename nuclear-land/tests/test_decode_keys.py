@@ -19,7 +19,7 @@ CASES = [('none', NONE), ('CRSR-down', DOWN), ('LSHIFT+CRSR-down', UP), ('RSHIFT
 
 
 def main():
-    prg = vice.build({'KEYTEST': 1})
+    prg = vice.build({'TESTMAP': 1, 'KEYTEST': 1})
     lab = vice.labels(prg)
     out = vice.memread(prg, lab['keytest_out'], len(CASES), wait_s=3.0)
     for (name, want), got in zip(CASES, out):

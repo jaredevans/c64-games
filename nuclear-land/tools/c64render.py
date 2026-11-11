@@ -24,14 +24,14 @@ def nearest_index(rgb):
     return _cache[rgb]
 
 
-def load_assets():
+def load_assets(map_name='testmap'):
     """Returns (map_bytes, glyph_for_code, colors). glyph_for_code(code) -> 8 row bytes or None
     for ROM font codes (not rendered; map views never contain them)."""
     inc = (GEN / 'tiles.inc').read_text()
     first = int([l for l in inc.splitlines() if l.startswith('TILE_FIRST')][0].split('=')[1].strip().lstrip('$'), 16)
     tiles = (GEN / 'tiles.bin').read_bytes()
     colors = (GEN / 'tilecolors.bin').read_bytes()
-    mp = (GEN / 'testmap.bin').read_bytes()
+    mp = (GEN / f'{map_name}.bin').read_bytes()
 
     def glyph(code):
         if code == 32:

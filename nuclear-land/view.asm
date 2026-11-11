@@ -13,7 +13,7 @@ row_off_hi
 ; view_build: draw view rows [view_row, view_end) for camera (view_cx, view_cy) into screen page
 ; view_page, colours to page base view_colhi. Clobbers A, X, Y, zp_src/dst/col, zp_tmp.
 view_build
-.row    lda view_cy             ; zp_src = testmap + (view_cy + row) * 64 + view_cx
+.row    lda view_cy             ; zp_src = map_data + (view_cy + row) * 64 + view_cx
         clc
         adc view_row
         sta zp_tmp
@@ -29,10 +29,10 @@ view_build
         bcc +
         inc zp_src+1
 +       clc
-        adc #<testmap
+        adc #<map_data
         sta zp_src
         lda zp_src+1
-        adc #>testmap
+        adc #>map_data
         sta zp_src+1
         ldx view_row
         lda row_off_lo + ROW_MAP,x
@@ -105,5 +105,3 @@ clear_screen
         bne -
         rts
 
-testmap
-        !binary "gen/testmap.bin"

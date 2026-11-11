@@ -9,8 +9,8 @@ STATUS, HUD, MAP = (0, 1), (21, 25), (2, 20)
 
 
 def main():
-    ref = vice.screenshot(vice.build(), 5_000_000)
-    prg = vice.build({'FORCE_FINE': 1})
+    ref = vice.screenshot(vice.build({'TESTMAP': 1}), 5_000_000)
+    prg = vice.build({'TESTMAP': 1, 'FORCE_FINE': 1})
     base = 5_000_000
     # 8 shots spread over 64 frames, at odd frame offsets so fine_x/fine_y differ between shots
     shots = [vice.screenshot(prg, base + k * 9 * vice.CYCLES_PER_FRAME) for k in range(8)]

@@ -8,8 +8,9 @@ DELTA = {0: (0, -1), 1: (0, 1), 2: (-1, 0), 3: (1, 0)}
 
 
 def simulate(script, map_bytes, start=(29, 19), cam=(10, 10), glide=8, map_w=64, map_h=48,
-             block_base=0x80, clamp=True):
-    """script: list of (frames, dir or None). Returns dict(leader, cam, steps, bumps)."""
+             block_base=0x80, clamp=True, people=()):
+    """script: list of (frames, dir or None); people: cells that block like walls.
+    Returns dict(leader, cam, steps, bumps)."""
     lx, ly = start
     cx, cy = cam
     steps = bumps = 0
@@ -23,7 +24,7 @@ def simulate(script, map_bytes, start=(29, 19), cam=(10, 10), glide=8, map_w=64,
             continue
         dx, dy = DELTA[d]
         tx, ty = lx + dx, ly + dy
-        if map_bytes[ty * map_w + tx] >= block_base:
+        if map_bytes[ty * map_w + tx] >= block_base or (tx, ty) in people:
             bumps += 1
             continue
         lx, ly = tx, ty

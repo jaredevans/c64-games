@@ -10,11 +10,11 @@ SPRITE_BOX = (19 * 8, 11 * 8 - 8, 32, 24)   # leader sprite over band cell (19,9
 
 
 def main():
-    prg = vice.build()
+    prg = vice.build({'TESTMAP': 1})
     lab = vice.labels(prg)
     shot = vice.screenshot(prg, 4_000_000)
-    mp, glyph, colors = load_assets()
-    exp = render_view(mp, glyph, colors, lab['START_CX'], lab['START_CY'])
+    mp, glyph, colors = load_assets('testmap')
+    exp = render_view(mp, glyph, colors, lab['MAP_START_X'] - 19, lab['MAP_START_Y'] - 9)
     dx, dy = vice.rest_shift(lab)
     mis = vice.band_mismatch(shot, exp, ignore_box=SPRITE_BOX, dx=dx, dy=dy)
     vice.check(mis <= 0.01, f'map band matches start view (mismatch {mis:.3%})')

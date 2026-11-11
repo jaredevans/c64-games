@@ -37,9 +37,9 @@ start
         lda #>SCREEN_B
         jsr clear_screen
         jsr clear_colram
-        lda #START_CX
+        lda #MAP_START_X - LEADER_COL       ; maps put the start where the camera is unclamped
         sta cam_x
-        lda #START_CY
+        lda #MAP_START_Y - LEADER_ROW
         sta cam_y
         lda #>SCREEN_A
         jsr view_draw_full
@@ -176,6 +176,11 @@ stress_x !byte 0, 40, 70, 100, 130, 200, 230, 250      ; all inside the screen (
 !source "charset.asm"
 !source "view.asm"
 !source "hud.asm"
+!ifdef TESTMAP {
+!source "gen/testmap.inc"
+} else {
+!source "gen/cinderhill.inc"
+}
 
 !if * > COLBUF {
         !error "code/data overran COLBUF ($B800)"
