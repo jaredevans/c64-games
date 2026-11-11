@@ -37,7 +37,7 @@ BELOW = 18                              # basement rows
 # letter: (name, colour, shape)
 CAST = {
     'h': ('HESPER', 3, 'adult'), 'b': ('WARDEN BRANDT', 10, 'adult'), 't': ('TAMSIN', 5, 'adult'),
-    'j': ('JORY', 9, 'adult'), 'o': ('ODALYS', 4, 'adult'), 'p': ('PIP', 7, 'kid'),
+    'j': ('JORY', 14, 'adult'), 'o': ('ODALYS', 4, 'adult'), 'p': ('PIP', 7, 'kid'),
     'c': ('MAYOR CORWIN', 15, 'adult'),
 }
 SHAPE_PTR = {'adult': 'SPR_ADULT_PTR', 'kid': 'SPR_KID_PTR'}
