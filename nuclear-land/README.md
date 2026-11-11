@@ -116,7 +116,7 @@ rules: no hot spot ever cuts off part of the town, and everyone can be reached.
 8×8 block, saved as `assets/<name>_c64_128x152.png`. Convert it with:
 
 ```sh
-python3 tools/make_portrait.py hesper Ilse-Brandt
+python3 tools/make_portrait.py hesper Ilse-Brandt Tamsin-Reyes Jory-Platt Odalys-Finch Pip Silas-Corwin Abel-Voss
 ```
 
 The converter maps every pixel to the nearest C64 colour. In any block that has more than two, it

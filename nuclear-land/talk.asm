@@ -58,6 +58,10 @@ talk_enter
         jsr fill_1k
         lda #>TALK_TEXT
         jsr clear_screen
+!ifdef PORTRAIT_OF {                    ; tests/test_portraits_all.py: show cast PORTRAIT_OF's portrait
+        lda #PORTRAIT_OF
+        sta talk_person
+}
         jsr portrait_blit
         jsr eyes_setup
         jsr talk_meet
@@ -652,12 +656,27 @@ ts_text
 }
 
 ; ---- data ----
-portrait_lo !byte <portrait_hesper, 0, 0, 0, 0, 0, 0, 0     ; by cast index
-portrait_hi !byte >portrait_hesper, 0, 0, 0, 0, 0, 0, 0
-portrait_hesper !binary "gen/portrait_hesper.bin"
-eyes_lo     !byte <eyes_hesper, 0, 0, 0, 0, 0, 0, 0             ; by cast index; hi 0 = no eyes
-eyes_hi     !byte >eyes_hesper, 0, 0, 0, 0, 0, 0, 0
-eyes_hesper !binary "gen/eyes_hesper.bin"
+; portraits and eye sprites by cast index (h b t j o p c v, as in tools/make_map.py + Voss)
+portrait_lo !byte <portrait_h, <portrait_b, <portrait_t, <portrait_j, <portrait_o, <portrait_p, <portrait_c, <portrait_v
+portrait_hi !byte >portrait_h, >portrait_b, >portrait_t, >portrait_j, >portrait_o, >portrait_p, >portrait_c, >portrait_v
+eyes_lo     !byte <eyes_h, <eyes_b, <eyes_t, <eyes_j, <eyes_o, <eyes_p, <eyes_c, <eyes_v
+eyes_hi     !byte >eyes_h, >eyes_b, >eyes_t, >eyes_j, >eyes_o, >eyes_p, >eyes_c, >eyes_v
+portrait_h !binary "gen/portrait_hesper.bin"
+portrait_b !binary "gen/portrait_Ilse-Brandt.bin"
+portrait_t !binary "gen/portrait_Tamsin-Reyes.bin"
+portrait_j !binary "gen/portrait_Jory-Platt.bin"
+portrait_o !binary "gen/portrait_Odalys-Finch.bin"
+portrait_p !binary "gen/portrait_Pip.bin"
+portrait_c !binary "gen/portrait_Silas-Corwin.bin"
+portrait_v !binary "gen/portrait_Abel-Voss.bin"
+eyes_h     !binary "gen/eyes_hesper.bin"
+eyes_b     !binary "gen/eyes_Ilse-Brandt.bin"
+eyes_t     !binary "gen/eyes_Tamsin-Reyes.bin"
+eyes_j     !binary "gen/eyes_Jory-Platt.bin"
+eyes_o     !binary "gen/eyes_Odalys-Finch.bin"
+eyes_p     !binary "gen/eyes_Pip.bin"
+eyes_c     !binary "gen/eyes_Silas-Corwin.bin"
+eyes_v     !binary "gen/eyes_Abel-Voss.bin"
 eye_mem_lo  !byte 0, 64, 128, 192
 eye_bit     !byte 1, 2, 4, 8
 eye_n       !byte 0

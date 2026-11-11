@@ -16,7 +16,7 @@ WHITE, RED, BLUE = 1, 2, 6
 
 
 def main():
-    for name in ('hesper', 'Ilse-Brandt'):
+    for name in ('hesper', 'Ilse-Brandt', 'Tamsin-Reyes', 'Jory-Platt', 'Odalys-Finch', 'Pip', 'Silas-Corwin', 'Abel-Voss'):
         out = NL / 'gen' / f'portrait_{name}.bin'
         src = NL / 'assets' / f'{name}_c64_128x152.png'
         info = make_portrait.convert(src, out)

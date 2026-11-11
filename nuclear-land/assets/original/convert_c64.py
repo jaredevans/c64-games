@@ -29,7 +29,7 @@ tools/make_portrait.py turns into hardware sprites drawn over the portrait (one 
 colour). The whites are the white pixels of the source inside the character's 'eyebox'
 (x0, y0, x1, y1, portrait pixels, end exclusive; or a list of boxes, one per eye); the iris is
 what lies between them on each row of the eye, in the character's 'iris' colour. The preview shows the portrait
-with the eyes on top, as the game does.
+with the eyes on top, as the game does; c64_preview/contact_sheet.png shows all of them.
 
 Usage (from anywhere):  python3 convert_c64.py [name ...]     (no names = all)
 """
@@ -392,6 +392,24 @@ def irises(cfg, whites):
     return out
 
 
+def contact_sheet():
+    """All characters' previews (eyes included) in one image: c64_preview/contact_sheet.png."""
+    from PIL import ImageDraw
+    names = [n for n in CONFIGS if (PREVIEW / f'{n}_c64.png').exists()]
+    cols, pad, label = 4, 16, 28
+    tw, th = W * 4, H * 4
+    rows = (len(names) + cols - 1) // cols
+    sheet = Image.new('RGB', (cols * (tw + pad) + pad, rows * (th + label + pad) + pad), (24, 24, 24))
+    draw = ImageDraw.Draw(sheet)
+    for i, n in enumerate(names):
+        x = pad + (i % cols) * (tw + pad)
+        y = pad + (i // cols) * (th + label + pad)
+        draw.text((x, y + 6), n, fill=(230, 230, 230))
+        sheet.paste(Image.open(PREVIEW / f'{n}_c64.png'), (x, y + label))
+    sheet.save(PREVIEW / 'contact_sheet.png')
+
+
 if __name__ == '__main__':
     for name in sys.argv[1:] or CONFIGS:
         run(name)
+    contact_sheet()
