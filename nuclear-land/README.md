@@ -105,7 +105,10 @@ in the [Spoiler](#spoiler) section at the bottom.
 
 ## Running it
 
-From `nuclear-land/`:
+The quick way: `./run_me.sh` builds the game and its disk and starts it in VICE. It uses `$X64SC`
+if set, else `x64sc` on your PATH, else `/Applications/vice-arm64-gtk3-3.10/bin/x64sc`.
+
+By hand, from `nuclear-land/`:
 
 ```sh
 mkdir -p build
