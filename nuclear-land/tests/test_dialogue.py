@@ -34,6 +34,18 @@ def main():
     inc = (NL / 'gen' / 'dialogue.inc').read_text()
     check(all(f'KW_{w} = {i}\n' in inc for i, w in enumerate(kw)), 'gen/dialogue.inc has KW_<WORD> = id for every keyword')
 
+    # M5 the ending: Voss's CORWIN topic index for the trigger, and the two ending texts
+    # (dialogue/ending.txt), wrapped to the ending screen's 36 columns, each fitting its rows
+    v = d['people']['v']
+    check(f"TOPIC_V_CORWIN = {v['order'].index('CORWIN')}\n" in inc, 'gen/dialogue.inc has TOPIC_V_CORWIN')
+    end = d['ending']
+    check(set(end) == {'good', 'open'}, 'ending.txt has the good and the open ending')
+    for k, ls in end.items():
+        check(all(len(ln) <= make_dialogue.END_WIDTH for ln in ls) and 3 <= len(ls) <= make_dialogue.END_ROWS
+              and '' in ls, f'ending {k}: {len(ls)} lines of at most {make_dialogue.END_WIDTH} columns, paragraphs apart')
+        check(f'end_{k}\n' in inc, f'gen/dialogue.inc has end_{k}')
+    check(' '.join(end['good'][:2]) == 'The squad brings Abel Voss up out of the dark.', 'good ending starts as written')
+
     t = Talk('h')
     t.enter(DIALS)
     defl = t.ask('TANKS', DIALS)

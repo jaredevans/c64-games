@@ -1,0 +1,21 @@
+; The ending (README.md in this folder): once Voss has answered CORWIN, leaving his conversation
+; ends the game. 'good' when two or more of the proofs CARTS, BARRELS, TRACKS and TAPPED are on
+; the Known list, 'open' with fewer. A blank line starts a new paragraph. Wrapped to 36 columns by
+; tools/make_dialogue.py; the screen adds how many proofs the squad found, and THE END.
+ending good
+The squad brings Abel Voss up out of the dark.
+
+In the town square, Hesper reads out the tank numbers. Jory tells what he saw at the valve. The
+Keepers break open the storehouse and find the drums, stamped with the town hall's mark.
+
+Corwin smiles to the very end. It doesn't help.
+
+The coolant runs where it should. The reactor steadies, and Cinderhill keeps its lights. For now.
+
+ending open
+Voss climbs into the daylight, blinking.
+
+The mayor shakes his hand and calls it a miracle. Nobody asks where the water went. By morning
+the tap on the coolant line is gone.
+
+Voss knows. You know. The reactor sputters on, and Cinderhill's fate is still open.

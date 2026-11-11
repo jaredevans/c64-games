@@ -631,7 +631,14 @@ talk_frame
 ; talk_leave: back to the town, rebuilt from game state
 !zone talk_leave
 talk_leave
-        sei
+        lda talk_person         ; Voss has named Corwin: leaving ends the game
+        cmp #CAST_VOSS
+        bne +
+        lda asked + CAST_VOSS*4 + (TOPIC_V_CORWIN >> 3)
+        and #1 << (TOPIC_V_CORWIN & 7)
+        beq +
+        jmp the_end
++       sei
         lda #D011_OFF
         sta VIC_CTRL1
         lda #>SCREEN_A
@@ -908,6 +915,9 @@ ts_text
 }
 !if TYPESCRIPT = 12 {           ; tests/test_basement.py: Voss, one question, leave
         !pet "name", 13, 13
+}
+!if TYPESCRIPT = 13 {           ; tests/test_ending.py: Voss names Corwin, leave
+        !pet "corwin", 13, 13
 }
 !if TYPESCRIPT = 3 {            ; tests/test_talk_input.py: junk, 14 letters, 3 DEL, RETURN, DEL, RETURN
         !pet "12!x", 13, "abcdefghijklmn", 20, 20, 20, 13, 20, 13

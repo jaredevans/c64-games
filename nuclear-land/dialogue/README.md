@@ -2,8 +2,8 @@
 
 The whole cast's conversations, one file per person, built into the game by
 `tools/make_dialogue.py` (it reads `dialogue/*.txt`). Written as a draft for review, then moved
-in as it was. Of the milestone 5 mechanics below, the skill lines and the way down the hatch to
-Voss are built (squad.asm, walk.asm); the ending isn't yet.
+in as it was. The milestone 5 mechanics below are built too: the skill lines and the ending in
+squad.asm, the way down the hatch to Voss in walk.asm, and the ending texts in ending.txt.
 
 ## How to read a script
 

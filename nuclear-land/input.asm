@@ -630,6 +630,19 @@ walk_script
         +steps 1, K4_I, K_NONE
         +idle 1
 }
+!if AUTOWALK = 40 {             ; tests/test_ending.py: Dials finds the tap on the way, then down to Voss, T
+        +into_yard
+        +to_valve
+        +use
+        +valve_to_hatch
+        +use
+        +steps 1, K4_J, K_NONE
+        +idle 4
+        +steps 15, K_NONE, K5_L
+        +steps 3, K4_K, K_NONE
+        +press 2, 2, K2_T
+        +idle 1
+}
 !if AUTOWALK = 19 {             ; Maren leads
         +to_hesper
         +press 2, 1, K1_3

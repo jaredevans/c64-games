@@ -32,6 +32,9 @@ WIDTH = 24
 MAX_LINES = 15          # the conversation area: an answer plus its question line must fit
 MAX_TOPICS = 32         # talkrules.asm keeps 32 asked-bits per person
 CAPS = re.compile(r"\b[A-Z]{3,}\b")
+END_WIDTH = 36          # the ending screen (squad.asm the_end): text from column 2
+END_TOP = 3             # first text row
+END_ROWS = 17           # rows END_TOP.. for the text; then a blank row, the proof count, THE END
 
 
 def wrap(text):
@@ -125,6 +128,8 @@ def parse_all(src=None):
     src = Path(src or NL / 'dialogue')
     people = {}
     for f in sorted(src.glob('*.txt')):
+        if f.name == 'ending.txt':          # not a person (parse_ending)
+            continue
         p = parse(f)
         people[p['letter']] = p
     keywords = list(INITIAL_KNOWN)
@@ -137,6 +142,50 @@ def parse_all(src=None):
         assert w not in keywords, f'{w} is a skill-spot word: no answer may reveal it'
         keywords.append(w)
     return people, keywords
+
+
+def parse_ending(path):
+    """dialogue/ending.txt -> {'good': [lines], 'open': [lines]}, paragraphs apart by a blank line."""
+    out, cur, para = {}, None, []
+
+    def flush():
+        if para:
+            if out[cur]:
+                out[cur].append('')
+            out[cur].extend(textwrap.wrap(' '.join(para), END_WIDTH, break_long_words=False))
+            para.clear()
+    for raw in path.read_text().splitlines():
+        line = raw.strip()
+        if line.startswith(';'):            # (';' only starts a comment at the start of a line)
+            continue
+        if line.startswith('ending '):
+            flush()
+            cur = line.split()[1]
+            out[cur] = []
+        elif not line:
+            flush()
+        else:
+            if cur is None:
+                raise ValueError(f'{path}: text before an "ending" line')
+            para.append(line)
+    flush()
+    for k, ls in out.items():
+        if len(ls) > END_ROWS:
+            raise ValueError(f'{path}: ending {k} is {len(ls)} lines, at most {END_ROWS}')
+    return out
+
+
+def upper_scr(text):
+    """Text -> screen codes of the walking charset (the ROM's upper-case set: letters 1-26)."""
+    out = []
+    for c in text.upper():
+        if 'A' <= c <= 'Z':
+            out.append(ord(c) - 64)
+        elif ' ' <= c <= '?':
+            out.append(ord(c))
+        else:
+            raise ValueError(f'character {c!r} has no screen code')
+    return out
 
 
 def mixed(text):
@@ -166,6 +215,7 @@ def build(src=None, out=None):
          'DLG_TOPICS = 16', 'KEY_SIZE = 6', 'TOPIC_SIZE = 7', 'TOPIC_TIER = 0', 'TOPIC_SAY = 1',
          'TOPIC_ELSE = 3', 'TOPIC_REVEAL = 5']
     a += [f'KW_{w} = {i}' for i, w in enumerate(keywords)]
+    a += [f'TOPIC_{c.upper()}_{name} = {i}' for c, p in people.items() for i, name in enumerate(p['order'])]
     a.append('kw_text')
     for w in keywords:
         codes = upper_codes(w)[:12]
@@ -208,8 +258,18 @@ def build(src=None, out=None):
                 lines(f'{pre}_t{i}_else', t['else'])
             a.append(f'{pre}_t{i}_rev !byte ' + ', '.join(str(keywords.index(w)) for w in t['reveals'] + []) +
                      (', $ff' if t['reveals'] else '$ff'))
+    ending = {}
+    end_src = Path(src or NL / 'dialogue') / 'ending.txt'
+    if end_src.exists():
+        ending = parse_ending(end_src)
+        a.append(f'END_TOP = {END_TOP}')
+        for k, ls in ending.items():         # 0-terminated rows, $ff after the last
+            a.append(f'end_{k}')
+            for ln in ls:
+                a.append('        !byte ' + ', '.join(str(c) for c in upper_scr(ln) + [0]))
+            a.append('        !byte $ff')
     out.write_text('\n'.join(a) + '\n')
-    return {'people': people, 'keywords': keywords}
+    return {'people': people, 'keywords': keywords, 'ending': ending}
 
 
 if __name__ == '__main__':

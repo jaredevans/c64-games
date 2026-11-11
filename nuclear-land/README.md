@@ -74,9 +74,9 @@ the Market Row pump house, and the screen changes:
   takes about 9 seconds; fastload cartridges, JiffyDOS, SD2IEC, the C64 Ultimate's drive and
   emulators are much quicker. With an REU (RAM Expansion Unit, real or emulated), each face is
   kept there after its first load, so going back to someone is instant.
-- Jory stays closed until Maren treats his fever, and Voss is hidden: milestone 5 opens both.
+- Jory stays closed until Maren treats Jory's fever, and Voss is hidden: milestone 5 opens both.
 
-**Milestone 5: the mystery's end (in progress).** The squad's skills now work at their spots.
+**Milestone 5: the mystery's end (done).** The squad's skills work at their spots.
 **U** uses the leader's skill, and the message line says what was found:
 
 - **Vesna** next to Brandt talks the Warden into opening up: the reactor gate opens, and Brandt is
@@ -84,8 +84,8 @@ the Market Row pump house, and the screen changes:
 - **Dials** beside the coolant valve behind the dome finds the tap on the line (TAPPED joins the
   Known list). Beside the old service hatch next to it, Dials forces it open, but only once Pip
   has told the squad about the HATCH.
-- **Maren** next to Jory treats his fever, which ends Jory's silence: he starts at Open. Next to him
-  again, Maren treats the squad as usual.
+- **Maren** next to Jory treats Jory's fever, which ends Jory's silence: Jory starts at Open. Next
+  to Jory again, Maren treats the squad as usual.
 - **Rook** on the cart tracks outside the compound's back fence reads where they lead (TRACKS
   joins the Known list).
 
@@ -95,8 +95,13 @@ hatch just stands open.
 Step onto the open hatch and the squad climbs down into the **basement** under the dome, a sealed
 cellar where the camera holds still and the squad walks around inside one screen. Voss is down
 there: **T** next to him opens his conversation. The stairs in the corner lead back up to the yard,
-beside the hatch. Still to come: the ending, which counts the proofs the squad found (CARTS,
-BARRELS, TRACKS, TAPPED).
+beside the hatch.
+
+**The ending.** Once Voss has named Corwin, leaving the conversation ends the game. With two or more
+of the four proofs on the Known list (CARTS, BARRELS, TRACKS, TAPPED) the town hears the truth;
+with fewer, Voss is back but the theft is never proved. The ending screen says how many proofs the
+squad found, then THE END. The game stops there: reset the C64 to play again. How to get there is
+in the [Spoiler](#spoiler) section at the bottom.
 
 ## Running it
 
@@ -207,7 +212,7 @@ add load so every frame of a glide can be checked.
 | `input.asm` | Keyboard matrix scan: movement and action keys |
 | `people.asm` | Townspeople sprites: placement, visibility, blocking, Pip's wander |
 | `status.asm` | Status line: place name and Geiger meter |
-| `squad.asm` | Health, leader, actions, the skill spots (gate, valve, hatch, Jory, tracks), radiation, healing, messages |
+| `squad.asm` | Health, leader, actions, the skill spots (gate, valve, hatch, Jory, tracks), radiation, healing, messages, the ending |
 | `hud.asm` | Squad strip: names, health bars, message line |
 | `charset.asm` | Builds the character set (ROM font + tiles) |
 | `talk.asm` | Talking screen: entering, the portrait, the raster split, leaving |
@@ -239,3 +244,42 @@ add load so every frame of a glide can be checked.
   as the map, so they move with it pixel for pixel. A sprite is only shown while all of its raster
   lines stay clear of the screen splits, so near the top and bottom of the map people pop in and
   out instead of sliding past the edge.
+
+## Spoiler
+
+> **Warning: this section gives away the whole mystery and the solution.** Stop reading here if you
+> want to work it out yourself.
+
+Corwin, the mayor, has been stealing the reactor's coolant. His men tapped the coolant line at the
+valve behind the dome, filled tanker carts at night through the compound's back fence, stored the
+water in the storehouse and sold it to the caravan by the barrel. Voss caught them and hid in the
+sealed basement under the dome, keeping the reactor alive by hand.
+
+To finish the game, find Voss and hear him name Corwin. For the good ending, also find **at least
+two** of the four proofs: CARTS, BARRELS, TRACKS and TAPPED. **U** is the leader's skill, **T** talks,
+and **1–4** choose the leader (Vesna, Dials, Maren, Rook). In a conversation you type a word and
+press RETURN; you can type any word, even one that isn't on the Known list.
+
+1. **Pip** (Market Row, wandering): ask NAME, then GHOST. Pip tells you about the HATCH behind the
+   dome, which Dials needs to know about before forcing it. With Vesna leading, GHOST works at once.
+2. **Brandt** (the reactor gate): with **Vesna** leading, press U next to Brandt. The Warden opens the
+   gate. Talking alone never does.
+3. **The valve** (inside the yard, behind the dome, at the left end of the pipe): with **Dials**
+   leading, press U next to it: **TAPPED**.
+4. **The cart tracks** (outside the compound, along the back fence and down its east side): with
+   **Rook** leading, stand on them and press U: **TRACKS**.
+5. **Jory** (the west-edge shack, West Shacks): with **Maren** leading, press U next to Jory to treat
+   the fever, then talk and ask JOB: **CARTS**.
+6. **Odalys** (the caravan camp): with **Vesna** leading, ask WATER: **BARRELS**. With anyone else
+   leading, ask one other topic first (NAME, say).
+7. **The hatch** (behind the dome, at the right end of the pipe): with **Dials** leading, press U next
+   to it to force it open, then step onto it to climb down into the basement.
+8. **Voss** (the basement): press T next to Voss and ask CORWIN (MAYOR works too). Then press RETURN
+   on an empty line to leave the conversation, and the ending plays.
+
+Hesper, Tamsin and Corwin aren't needed, but they fill in the story. Hesper, with Maren leading,
+answers NAME and then TANKS: the town's water tanks are draining too fast. Tamsin, once Open, has seen
+lights in the reactor at night. Corwin is friendly and lies about everything; his answers
+can be caught against what the others say.
+
+The quickest good ending uses the two skill proofs: steps 1–4, then 7 and 8.

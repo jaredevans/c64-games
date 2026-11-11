@@ -36,6 +36,16 @@ squad_init
         lda #KW_HATCH
         jsr known_add
 }
+!ifdef PROOFS {                 ; tests/test_ending.py: the first PROOFS proofs are already known
+        ldy #0
+-       cpy #PROOFS
+        beq +
+        lda proof_kw,y
+        jsr known_add
+        iny
+        bne -
++
+}
         lda #<msg_arrive
         ldx #>msg_arrive
         jmp msg_set
@@ -406,6 +416,123 @@ maren_use
         lda #<msg_treats
         ldx #>msg_treats
         jmp msg_set
+
+; the_end: leaving Voss once he has named Corwin. The ending screen in the walking charset: the
+; good ending with two or more of the four proofs on the Known list, the open one with fewer
+; (gen/dialogue.inc end_good / end_open, from dialogue/ending.txt), how many the squad found, and
+; THE END. The game stops here: interrupts off, the screen stays.
+!zone the_end
+the_end
+        sei
+        lda #0
+        sta VIC_IRQEN
+        sta VIC_SPREN
+        lda #$ff
+        sta VIC_IRQ
+        lda #D011_OFF
+        sta VIC_CTRL1
+        lda #%00001000          ; 40 columns, no scroll
+        sta VIC_CTRL2
+        lda #D018_A
+        sta VIC_MEM
+        lda #COL_BLACK
+        sta VIC_BORDER
+        lda #>SCREEN_A
+        jsr clear_screen
+        ldx #0
+        lda #COL_LGREY
+-       sta COLRAM,x
+        sta COLRAM+$100,x
+        sta COLRAM+$200,x
+        sta COLRAM+$2e8,x
+        inx
+        bne -
+        lda #0                  ; the proofs found
+        sta end_n
+        ldy #3
+-       lda proof_kw,y
+        jsr known_has           ; (keeps Y)
+        bcc +
+        inc end_n
++       dey
+        bpl -
+        lda end_n
+        cmp #2
+        bcc +
+        lda #<end_good
+        ldx #>end_good
+        bne ++
++       lda #<end_open
+        ldx #>end_open
+++      sta zp_src
+        stx zp_src+1
+        lda #<(SCREEN_A + END_TOP*40 + 2)
+        sta zp_dst
+        lda #>(SCREEN_A + END_TOP*40 + 2)
+        sta zp_dst+1
+.line   ldy #0
+        lda (zp_src),y
+        cmp #$ff
+        beq .done
+-       lda (zp_src),y
+        beq .eol
+        sta (zp_dst),y
+        iny
+        bne -
+.eol    iny                     ; past the 0: the next row's text
+        tya
+        clc
+        adc zp_src
+        sta zp_src
+        bcc +
+        inc zp_src+1
++       jsr .down
+        jmp .line
+.done   jsr .down               ; a blank row, then the count
+        ldy #0
+        ldx #0
+-       lda txt_found,x
+        beq +
+        sta (zp_dst),y
+        inx
+        iny
+        bne -
++       lda end_n
+        clc
+        adc #'0'
+        sta (zp_dst),y
+        iny
+        ldx #0
+-       lda txt_found2,x
+        beq +
+        sta (zp_dst),y
+        inx
+        iny
+        bne -
++       ldx #7
+-       lda txt_the_end,x
+        sta SCREEN_A + 22*40 + 16,x
+        dex
+        bpl -
+        lda #1
+        sta game_over
+        lda #D011_TXT
+        sta VIC_CTRL1
+.stop   jmp .stop
+.down   lda zp_dst              ; zp_dst one row down
+        clc
+        adc #40
+        sta zp_dst
+        bcc +
+        inc zp_dst+1
++       rts
+
+proof_kw    !byte KW_CARTS, KW_BARRELS, KW_TRACKS, KW_TAPPED
+txt_found   !scr "the squad found ", 0
+txt_found2  !scr " of the 4 proofs.", 0
+txt_the_end !scr "the end."
+end_n       !byte 0
+game_over   !byte 0
 
 ; squad_step: once per completed step (from on_step_end) - radiation, Maren's recovery, cooldown
 !zone squad_step
