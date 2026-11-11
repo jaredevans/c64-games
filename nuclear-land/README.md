@@ -285,4 +285,6 @@ answers NAME and then TANKS: the town's water tanks are draining too fast. Tamsi
 lights in the reactor at night. Corwin is friendly and lies about everything; his answers
 can be caught against what the others say.
 
+
+
 The quickest good ending uses the two skill proofs: steps 1–4, then 7 and 8.
