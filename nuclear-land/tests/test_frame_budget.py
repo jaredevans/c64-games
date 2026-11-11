@@ -8,17 +8,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vice  # noqa: E402
 
 
-def main():
-    prg = vice.build({'TESTMAP': 1, 'TEST_PEOPLE': 1, 'AUTOWALK': 4, 'TIMING': 1})
+def budget(name, defines):
+    prg = vice.build({**defines, 'AUTOWALK': 4, 'TIMING': 1})
     lab = vice.labels(prg)
-    m = vice.memread(prg, lab['late_max'], 2, wait_s=10.0)
-    late = m[0] | m[1] << 8
-    vice.check(late > 0, f'measured ({late})')
-    vice.check(late < 312 + 62, f'latest sprite placement on raster {late} (wrapped) < {312 + 62}')
-    m = vice.memread(prg, lab['colour_max'], 2, wait_s=10.0)
-    col = m[0] | m[1] << 8
-    vice.check(col > 0, f'colour copy measured ({col})')
-    vice.check(col < 312 + 62, f'flip-frame colour copy done by raster {col} (wrapped) < {312 + 62}')
+    late_lo, late_hi, col_lo, col_hi = vice.memread(prg, lab['late_max'], 4, wait_s=10.0)
+    late, col = late_lo | late_hi << 8, col_lo | col_hi << 8
+    vice.check(late > 0 and col > 0, f'{name}: measured ({late}, {col})')
+    vice.check(late < 312 + 62, f'{name}: latest sprite placement on raster {late} (wrapped) < {312 + 62}')
+    vice.check(col < 312 + 62, f'{name}: flip-frame colour copy done by raster {col} (wrapped) < {312 + 62}')
+
+
+def main():
+    budget('test map, 3 people', {'TESTMAP': 1, 'TEST_PEOPLE': 1})
+    budget('Cinderhill, 7 people', {})
 
 
 if __name__ == '__main__':

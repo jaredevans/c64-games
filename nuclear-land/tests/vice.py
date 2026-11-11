@@ -58,7 +58,11 @@ def labels(prg):
 
 
 def screenshot(prg, cycles):
-    """Run `prg` headless for `cycles` CPU cycles and return the exit screenshot."""
+    """Run `prg` headless for `cycles` CPU cycles and return the exit screenshot.
+
+    -limitcycles stops mid-frame: rows the raster hasn't reached yet still show the previous frame.
+    (5_000_000 stops ~117 lines into a frame.) To compare positions across frames, stop below the
+    display, e.g. 5_009_500 + k * CYCLES_PER_FRAME."""
     with tempfile.TemporaryDirectory() as td:
         png = os.path.join(td, 'shot.png')
         # VIDEO (with -default) must come first: -default resets every option given before it

@@ -10,8 +10,8 @@
 ;   row 5: bit2 L        row 6: bit4 RSHIFT    row 7: bit0 1, bit3 2
 ;
 ; Action keys 1-4 (leader), T (talk), U (use skill) act once per press: input_read latches an action
-; in act_pending only when it appears after a frame with none; squad_act runs it when the leader
-; stands still.
+; in act_pending when the decoded action changes to a new one (holding a key never repeats it;
+; rolling from one key to another counts both); squad_act runs it when the leader stands still.
 
 ; input_read: fill kb_row* (hardware, or the AUTOWALK script), decode into cur_dir
 input_read
@@ -55,13 +55,12 @@ input_read
 }
         jsr decode_keys
         sta cur_dir
-        jsr decode_action       ; latch a newly pressed action
-        ldx act_prev
+        jsr decode_action       ; latch an action when it changes to a new one (so a key pressed
+        cmp act_prev            ; while another is still held counts once the first is released)
         sta act_prev
+        beq +
         cmp #ACT_NONE
         beq +
-        cpx #ACT_NONE
-        bne +
         sta act_pending
 +       rts
 
@@ -482,6 +481,12 @@ walk_script
         +press 2, 7, K7_2
         +idle 4
         +press 2, 3, K3_U
+        +idle 1
+}
+!if AUTOWALK = 17 {             ; tests/test_actions.py: key rollover 2 -> 3
+        +press 6, 7, K7_2
+        !byte 4, K_NONE, K1_3, K_NONE, K_NONE, K_NONE, K_NONE, K_NONE, K7_2  ; 2 and 3 both down
+        +press 6, 1, K1_3
         +idle 1
 }
 !if AUTOWALK = 14 {             ; tests/test_actions.py: T at the start, nobody adjacent

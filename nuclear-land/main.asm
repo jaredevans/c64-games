@@ -226,9 +226,12 @@ timing_heavy
 +       rts
 ; timing_max: timing_vars[x..x+1] = max(itself, wrapped raster line now)
 timing_max
-        lda VIC_RASTER
-        ldy VIC_CTRL1
-        bpl +                   ; line >= 256: same frame
+-       lda VIC_RASTER          ; read $D012/$D011 bit 7 as one 9-bit line: retry if $D012 moved
+        ldy VIC_CTRL1           ; between (straddling 255->256 or 311->0 gave 511 / 367)
+        cmp VIC_RASTER
+        bne -
+        cpy #$80
+        bcc +                   ; line >= 256: same frame
         sta zp_tmp
         lda #1
         bne ++

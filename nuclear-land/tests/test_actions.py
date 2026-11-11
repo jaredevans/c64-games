@@ -35,6 +35,12 @@ def main():
                if nearest_index(shot.getpixel((x0 + x, y0 + y))) == LBLUE)
     vice.check(blue >= 40, f'leader sprite is light blue ({blue} px)')
 
+    # rollover: 2 held, 3 pressed while 2 is still down, then 2 released - the 3 must still count
+    prg = vice.build({'TESTMAP': 1, 'AUTOWALK': 17})
+    lab = vice.labels(prg)
+    lead, acts = vice.memread(prg, lab['leader'], 1, wait_s=4.0, extra_reads=[(4.0, lab['actions_done'], 1)])
+    vice.check(lead[0] == 2 and acts[0] == 2, f'rollover 2 -> 3: leader {lead[0]} (want 2), actions {acts[0]} (want 2)')
+
     prg = vice.build({'TESTMAP': 1, 'AUTOWALK': 14})
     lab = vice.labels(prg)
     row, tt = vice.memread(prg, 0xc000 + 22 * 40, 40, wait_s=4.0, extra_reads=[(4.0, lab['talk_target'], 1)])
