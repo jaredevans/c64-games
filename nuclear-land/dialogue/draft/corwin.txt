@@ -1,0 +1,80 @@
+; Mayor Silas Corwin, town hall (spec: Cast). Starts Friendly (fake): the meter is full, every topic
+; is answered, and every answer is a warm lie or a deflection. Never confesses in v1. No favourite.
+; Clue: blames OUTSIDERS. A careful player can catch the lies against what others say.
+person c
+name CORWIN
+role MAYOR OF CINDERHILL
+start FRIENDLY
+greet The mayor rises from behind a polished desk with open arms. Friends! Welcome to Cinderhill!
+deflect Ha! Another time, friend.
+unknown I'm afraid I can't help you there, friend.
+
+topic NAME
+  tier WARY
+  say Silas Corwin, mayor of Cinderhill these twelve years. Anything you need, you come to me.
+topic JOB,WORK
+  tier WARY
+  say I keep the peace. Keepers and Dimmers at each other's throats, and me in the middle, holding the town together.
+topic REACTOR
+  tier WARY
+  say A tragedy. OUTSIDERS damaged it, mark my words. Sabotage. We'll find them.
+topic OUTSIDERS,SABOTAGE
+  tier WARY
+  say Raiders, drifters, who knows? Not you, of course. You have honest faces.
+topic VOSS
+  tier WARY
+  say Poor Abel. Wandered off into the wastes, I fear. That reactor was his whole life.
+topic WATER
+  tier WARY
+  say Plenty for everyone, if people are sensible. I've asked the town to use less.
+topic TANKS
+  tier WARY
+  say Hesper frets. Hesper always frets. Evaporation, friend. A hot summer.
+topic CARAVAN
+  tier WARY
+  say The caravans keep us alive! Salt, tools, medicine. I welcome them all.
+topic ODALYS,FINCH
+  tier WARY
+  say Odalys? A good friend to this town. We buy all sorts from Odalys.
+topic KEEPERS
+  tier WARY
+  say Loyal people. A little devout. I send them bread every week.
+topic BRANDT,WARDEN
+  tier WARY
+  say The Warden and I have an understanding.
+topic DIMMERS,TAMSIN
+  tier WARY
+  say Troublemakers. Tamsin would plunge us all into darkness. Don't listen to them.
+topic HESPER
+  tier WARY
+  say Dear Hesper. Worries too much.
+topic JORY
+  tier WARY
+  say Sick, I hear. Terrible. There's a fever going round.
+topic CARTS
+  tier WARY
+  say Carts? Every town has carts. Mine haul grain to the storehouse.
+topic BARRELS,DRUMS
+  tier WARY
+  say Barrels? For the grain, of course.
+topic STOREHOUSE
+  tier WARY
+  say Grain, seed and spare parts. Locked, for everyone's safety.
+topic COOLANT
+  tier WARY
+  say Leave the reactor's plumbing to the Keepers, friend.
+topic VALVE
+  tier WARY
+  say The coolant valve? I wouldn't know one end of it from the other.
+topic TRACKS
+  tier WARY
+  say Tracks? My men take a short cut past the compound. Nothing more.
+topic TAPPED
+  tier WARY
+  say Tapped? Impossible. Brandt guards that compound day and night. You must be mistaken.
+topic LIGHTS,GHOST
+  tier WARY
+  say Ghost stories. Pip's been at you, I see.
+topic HATCH
+  tier WARY
+  say There's no hatch. Well. None that anyone uses.

@@ -1,0 +1,101 @@
+; Hesper, the water-keeper (spec: Cast). Starts Wary, favours Maren.
+; Clue chain: WATER -> TANKS (Open) -> CORWIN, CARAVAN.
+person h
+name HESPER
+role WATER-KEEPER
+start WARY
+favours MAREN
+greet Hesper eyes you over the pump handle and says nothing.
+deflect Why would I tell you?
+unknown Never heard of it.
+
+topic NAME
+  tier WARY
+  say Hesper. I keep the WATER for this town. You can stop staring.
+topic JOB,WORK
+  tier WARY
+  say I work the PUMP. Every drop in Cinderhill passes through my hands first.
+topic PUMP
+  tier WARY
+  say Pre-war pump. The REACTOR drives it. When the reactor coughs, the pump coughs.
+topic WATER
+  tier WARY
+  say Clean water is the only thing worth a fight out here. We keep it in the TANKS.
+topic KEEPERS
+  tier WARY
+  say Warden Brandt's people. Stiff necks, but they keep thieves away from the reactor.
+topic REACTOR
+  tier GUARDED
+  say It runs the lights, the pump and the greenhouse. Lately it sputters. The KEEPERS pray to it. The DIMMERS curse it.
+  else Ask the Keepers. They think they own it.
+topic VOSS
+  tier GUARDED
+  say Abel Voss kept that reactor alive for twenty years. Then one night he was gone. Nobody looks very hard.
+  else People go missing. It happens.
+topic DIMMERS
+  tier GUARDED
+  say Tamsin's lot want the reactor shut down. No reactor, no pump. No pump, no town.
+topic CARAVAN
+  tier GUARDED
+  say Traders come up the east road and camp past the square. They pay well for water. Too well.
+topic TANKS
+  tier OPEN
+  say I measure the tanks every night. They drain faster than this town can drink. Someone is taking it. The mayor's caravan friends, I'd bet. Ask CORWIN about his CARAVAN deals.
+  else Tanks are tanks. Why do you care?
+topic CORWIN,MAYOR
+  tier OPEN
+  say The mayor smiles a lot for a man in a dry town. Corwin gets his water first. Always has.
+  else The mayor is the mayor.
+
+; ---- NEW in the M4 draft: everything below. The lines above are the built, played M3 text,
+; ---- unchanged. These topics only answer words learned from other people.
+topic CINDERHILL,TOWN
+  tier WARY
+  say Cinderhill. Three hundred people, one pump and a reactor older than all of us. Welcome.
+topic BRANDT,WARDEN
+  tier WARY
+  say Ilse Brandt runs the Keepers from the reactor gate. Fair, if you keep your hands off the reactor.
+topic TAMSIN
+  tier WARY
+  say Tamsin grows the town's food in the greenhouse. Loud about the reactor. Not always wrong.
+topic GREENHOUSE
+  tier WARY
+  say Tamsin's glass house, out south-east. Half my water goes there.
+topic PIP
+  tier WARY
+  say The kid runs all over Market Row. Sees everything. Understands about half of it.
+topic GATE
+  tier WARY
+  say Brandt's gate. Keepers on it day and night. They don't let me in either.
+topic JORY
+  tier GUARDED
+  say Jory worked the night shift at the pump with me. Then the fever came. Jory's in a shack on the west edge now and won't talk to anyone.
+  else Jory is sick. Leave it.
+topic ODALYS,FINCH
+  tier GUARDED
+  say The trader at the caravan camp. Buys more water than any caravan could drink.
+topic OUTSIDERS,SABOTAGE
+  tier GUARDED
+  say The mayor says outsiders broke the reactor. The mayor says a lot of things.
+topic GHOST
+  tier GUARDED
+  say Pip's ghost? Kids' talk. Though I've heard banging up in the yard at night.
+topic LIGHTS
+  tier GUARDED
+  say The reactor is meant to be dark at night. Ask the greenhouse lot. They keep late hours.
+topic STOREHOUSE
+  tier GUARDED
+  say The mayor's storehouse, behind the town hall. Kept locked. Grain, the mayor says.
+topic VALVE
+  tier GUARDED
+  say The coolant valve is up in the compound. The Keepers won't let me near it.
+topic COOLANT
+  tier OPEN
+  say The reactor drinks too. Its cooling water comes from my tanks, up a pipe to the compound. If the tanks run short, guess what goes short first.
+  else Pipes and water. Nothing to interest you.
+topic CARTS
+  tier OPEN
+  say I hear wheels some nights, heavy ones, going south. I don't go out after dark. Not any more.
+topic BARRELS
+  tier OPEN
+  say Barrels of water? Not from my pump. I'd know. I count every drop.

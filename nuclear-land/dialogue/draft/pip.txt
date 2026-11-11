@@ -1,0 +1,68 @@
+; Pip, a kid who wanders Market Row (spec: Cast). Starts Open, favours Rook.
+; Clue: the hole where the ghost lives -> HATCH, and roughly where it is. The ghost story is at
+; Friendly, so it takes one friendly answer first (Rook leading: none).
+person p
+name PIP
+role A KID
+start OPEN
+favours ROOK
+greet A skinny kid with a slingshot skids to a stop and stares at your boots.
+deflect Pip sticks out a tongue. Not telling!
+unknown Huh? Is that a grown-up word?
+
+topic NAME
+  tier WARY
+  say Pip. Just Pip. I know everybody in town. Like JORY, who's sick. And ODALYS, who has sweets.
+topic JOB,WORK
+  tier WARY
+  say I'm a kid. My job is finding stuff. I found a GHOST once.
+topic GHOST
+  tier FRIENDLY
+  say It lives in a hole behind the big dome, in the reactor yard. There's a metal HATCH in the weeds. It bangs at night, like somebody hitting pipes. I'm not scared.
+  else I only tell friends about the ghost.
+topic HATCH
+  tier FRIENDLY
+  say Round the back of the dome, by the fat pipe. You need a tinker to open it. I tried with a stick.
+  else What hatch? I don't know any hatch.
+topic REACTOR
+  tier WARY
+  say The Warden won't let me in. I climb the back fence, though. There's a hole only I fit through.
+topic VOSS
+  tier WARY
+  say Mister Voss gave me a bolt once. Now he's gone. Maybe the ghost ate him.
+topic BRANDT,WARDEN
+  tier WARY
+  say The Warden's scary. Don't tell the Warden I was on the fence.
+topic TAMSIN
+  tier WARY
+  say Tamsin gives me carrots for stones. Good trade.
+topic HESPER
+  tier WARY
+  say Hesper makes me wash before I touch the pump. Every time!
+topic JORY
+  tier WARY
+  say Jory's sick. Jory used to give me rides on the pump cart.
+topic ODALYS,SWEETS
+  tier WARY
+  say Odalys has real sweets! From the road!
+topic CORWIN,MAYOR
+  tier WARY
+  say The mayor pats my head. I hate it. The mayor's men push carts around at night and they're so loud.
+topic CARTS
+  tier WARY
+  say Big squeaky carts. They go to the storehouse.
+topic LIGHTS
+  tier WARY
+  say The ghost has a lamp. I saw it.
+topic WATER,PUMP
+  tier WARY
+  say The pump goes thunk-thunk. I can do it too. Thunk!
+topic KEEPERS
+  tier WARY
+  say They wear grey and they never laugh.
+topic DIMMERS
+  tier WARY
+  say Tamsin's friends. They want to turn the reactor off. Then it's dark at night. I don't like that.
+topic CARAVAN
+  tier WARY
+  say The caravan has a dog! Its name is Biscuit.

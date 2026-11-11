@@ -1,0 +1,75 @@
+; Warden Ilse Brandt, the Keepers' leader, at the reactor gate (spec: Cast). Starts Wary, favours Rook.
+; Clue: VOSS went into the compound the night of the disappearance, and the Keepers sealed it (Open).
+; M5 mechanic: Vesna's skill (U, Vesna leading, next to Brandt) opens the gate to the compound
+; grounds and puts Brandt at Open. Talking alone never opens the gate.
+person b
+name BRANDT
+role WARDEN OF THE KEEPERS
+start WARY
+favours ROOK
+greet A tall Keeper in patched grey stands square in the gate, arms folded.
+deflect That is Keeper business.
+unknown Not my concern.
+
+topic NAME
+  tier WARY
+  say Ilse Brandt, Warden of the Keepers. This GATE is mine. State your business or move along.
+topic JOB,WORK
+  tier WARY
+  say I keep the reactor safe from fools and thieves. Lately the town is full of both. And of one kid, PIP, who keeps climbing my fence.
+topic KEEPERS
+  tier WARY
+  say We tend the reactor the way our parents did. It gave this town light when the world went dark. We owe it that much.
+topic GATE
+  tier WARY
+  say Nobody passes this gate. Not you, not the mayor, not the town. Warden's orders. My orders.
+topic REACTOR
+  tier WARY
+  say It is old and it is tired and it is all we have. The Dimmers would kill it. They'll have to get past me.
+topic CARAVAN
+  tier WARY
+  say Traders. They camp by the east road and stare at my fence. I stare back.
+topic OUTSIDERS,SABOTAGE
+  tier WARY
+  say The mayor says outsiders broke the reactor. You're outsiders. Did you?
+topic DIMMERS
+  tier GUARDED
+  say TAMSIN Reyes and the greenhouse crowd. They'd switch off the only light for a hundred miles because some beans went brown.
+  else Fools. That's all you need to know.
+topic TAMSIN
+  tier GUARDED
+  say The loudest Dimmer. Means well. Wrong anyway.
+topic WATER,TANKS
+  tier WARY
+  say Water is Hesper's business, not mine.
+topic CORWIN,MAYOR
+  tier GUARDED
+  say The mayor sends my Keepers bread every week and asks how the reactor is doing. Every week. Very kind.
+topic GHOST
+  tier GUARDED
+  say Pip's ghost. Banging under the yard at night. Old pipes settling. Nothing more.
+topic VOSS
+  tier OPEN
+  say The night Voss vanished, Voss came to this gate and I let him in. He never came back out. By morning the reactor was barred from the inside. So we sealed the whole compound. Nobody has gone in since.
+  else Voss is Keeper business.
+topic LIGHTS
+  tier OPEN
+  say Lights? The reactor is sealed. If there are lights in there, nobody I know is carrying them.
+topic COOLANT
+  tier OPEN
+  say The cooling water comes up from the town tanks to a valve in the yard. My Keepers walk the fence. There are six of us. It is a long fence.
+topic VALVE
+  tier OPEN
+  say The coolant valve is in the yard, behind the dome. Shut tight, last time I looked.
+topic CARTS
+  tier OPEN
+  say Carts? At night? We watch the gate. The back fence is long and we are few.
+topic HATCH
+  tier OPEN
+  say There's an old service hatch behind the dome. It's been rusted shut for years.
+topic TRACKS
+  tier GUARDED
+  say Tracks round the back? We don't use the back.
+topic TAPPED
+  tier OPEN
+  say Tapped. The line was tapped, and my Keepers walked past it every night. Someone will answer for that.

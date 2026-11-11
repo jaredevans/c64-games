@@ -1,0 +1,55 @@
+; Odalys Finch, caravan trader at the camp on the east road (spec: Cast). Starts Guarded, favours
+; Vesna (so Vesna leading is faster twice over: the first-meeting bonus and the favour).
+; Clue at Open: buys water cheap, by the barrel, from the back of the reactor -> BARRELS.
+person o
+name ODALYS
+role CARAVAN TRADER
+start GUARDED
+favours VESNA
+greet A trader in a dusty long coat leans on a wagon wheel, counting coins.
+deflect Buy something first, friend. Then we'll talk.
+unknown Never traded in that.
+
+topic NAME
+  tier WARY
+  say Odalys Finch, of the Finch caravans. Water, salt, tools. Mostly water.
+topic JOB,WORK
+  tier WARY
+  say I buy cheap and sell dear. Cinderhill sells water cheaper than anywhere on the road.
+topic CARAVAN
+  tier WARY
+  say Six wagons, twelve drivers, one boss. Me. We leave when the drums are full.
+topic VOSS
+  tier WARY
+  say Never met anyone by that name.
+topic REACTOR
+  tier WARY
+  say Not my business. I just like the water this town has to spare.
+topic OUTSIDERS,SABOTAGE
+  tier WARY
+  say Outsiders broke the reactor? I've heard. Funny how it's always the outsiders.
+topic KEEPERS
+  tier WARY
+  say They watch the front gate. Never the back. I notice things like that.
+topic DIMMERS
+  tier WARY
+  say If the Dimmers shut that reactor down, I lose my best supplier.
+topic WATER
+  tier OPEN
+  say All right. It doesn't come from the pump. I buy it by the barrel, forty a week, and it comes from the back of the reactor. Men from town roll the BARRELS up to my wagons after dark. Who they work for is their business.
+  else Water's water. I buy it, I sell it.
+topic BARRELS,DRUMS
+  tier OPEN
+  say Old pre-war drums, stamped with the town hall's mark. I bring them back empty. They come back full.
+topic CORWIN,MAYOR
+  tier GUARDED
+  say The mayor is a fine host. Very fine. Ask the mayor yourself.
+topic TANKS
+  tier OPEN
+  say Hesper's tanks? I don't buy from Hesper. Hesper wouldn't sell.
+topic CARTS
+  tier OPEN
+  say Not mine. Mine are wagons. Tanker carts belong to the town.
+topic COOLANT
+  tier OPEN
+  say Coolant? It's water. Clean, warm, and nobody misses it. That's what I was told.

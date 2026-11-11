@@ -1,0 +1,70 @@
+; Abel Voss, the reactor engineer, alive in the sealed basement (spec: Cast). Starts Open.
+; The final conversation: explains the tapped line and names Corwin.
+; M5 mechanic: once Voss has answered CORWIN, leaving the conversation runs the ending (see
+; README.md in this folder for the two ending texts). Voss's lines never put a proof word
+; (CARTS BARRELS TRACKS TAPPED) in capitals, so talking to Voss can't count as finding proof.
+person v
+name VOSS
+role REACTOR ENGINEER
+start OPEN
+greet A thin grey man in a filthy coverall spins round, wrench raised, then lowers it. You're not the mayor's men. Good.
+deflect Not now. Help me keep this thing alive first.
+unknown No idea. I've been down here too long.
+
+topic NAME,ABEL,VOSS
+  tier WARY
+  say Abel Voss. I've kept this reactor going for twenty years. The last few weeks, by hand.
+topic JOB,WORK
+  tier WARY
+  say Every two hours I bleed the pressure and top up the core by hand from the old cistern. I haven't slept a night through in a month.
+topic REACTOR
+  tier WARY
+  say It isn't broken. It's thirsty. Someone has been drawing off its cooling water. Short of coolant, the core runs hot and it sputters. One day it won't.
+topic COOLANT
+  tier WARY
+  say It comes from Hesper's tanks, up the line to the valve in the yard. Somebody fitted a second outlet to that line. A neat job. Not an outsider's.
+topic VALVE
+  tier WARY
+  say Look at the valve behind the dome. There's a tap on it I never put there.
+topic CORWIN,MAYOR
+  tier WARY
+  say Silas Corwin. I caught his men at the valve, filling tanker carts. I told him. He smiled and said I was tired. The next night they came for me, and I bolted myself in down here. He sells our coolant to the caravans by the barrel.
+topic HIDING,HIDE
+  tier WARY
+  say If I came out, Corwin's men would see I had an accident. Down here the Keepers' seal keeps me safe, and the reactor needs me.
+topic KEEPERS,BRANDT
+  tier WARY
+  say Brandt sealed the compound to protect the reactor. It protected me too. The Keepers never knew I was here.
+topic LIGHTS
+  tier WARY
+  say My work lamp. I hoped somebody would notice.
+topic GHOST,HATCH
+  tier WARY
+  say The banging? That's me, freeing a stuck bypass valve. I'm sorry I scared the kid.
+topic PROOF
+  tier WARY
+  say One man's word is easy to call a lie. Bring the town proof. The carts, the barrels, the tracks, the tap.
+topic CARTS
+  tier WARY
+  say Jory saw the carts? Then Jory knows what I know.
+topic BARRELS
+  tier WARY
+  say Barrels at the caravan camp. So that's where it goes.
+topic TRACKS
+  tier WARY
+  say Tracks from the fence to the storehouse? That's where they keep it until the traders come.
+topic TAPPED
+  tier WARY
+  say You've seen the tap yourself, then. Good. Now two of us know.
+topic DIMMERS,TAMSIN
+  tier WARY
+  say Tamsin's right that it's dangerous. Wrong about why.
+topic OUTSIDERS,SABOTAGE
+  tier WARY
+  say Corwin's story. No outsider knew where that line runs. Someone who signs the town's papers did.
+topic JORY
+  tier WARY
+  say Jory from the pump? I hope that fever was only a fever.
+topic HESPER,TANKS,WATER
+  tier WARY
+  say Hesper measures every drop. Hesper must have noticed.

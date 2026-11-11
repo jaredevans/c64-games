@@ -1,0 +1,47 @@
+; Jory Platt, pump worker, sick in a shack at the west edge (spec: Cast). Refuses to talk until
+; treated: every real topic is at Open, and trust only grows from real answers, so talking alone
+; never gets past the deflections (Vesna's first-meeting bonus only reaches Guarded).
+; M5 mechanic: Maren's skill (U, Maren leading, next to Jory) cures the fever and puts Jory at Open.
+; Clue: the mayor's men with tanker CARTS at the coolant VALVE at night.
+person j
+name JORY
+role PUMP WORKER
+start WARY
+favours MAREN
+greet Jory lies on a cot, shivering, and turns to face the wall.
+deflect Jory only coughs and pulls the blanket up.
+unknown Jory says nothing.
+
+topic NAME
+  tier OPEN
+  say Jory Platt. I work the pump with Hesper. Worked. Thank you for the medicine.
+topic JOB,WORK
+  tier OPEN
+  say Night shift at the pump. That's how I saw them. The mayor's men, three nights running, filling tanker CARTS at the COOLANT VALVE up in the yard. They saw me too. Two days later the fever came.
+topic CARTS
+  tier OPEN
+  say Tanker carts, pulled by hand. Full, they went south, towards the town hall.
+topic VALVE
+  tier OPEN
+  say The valve is behind the dome. They came in through the back fence. The Keepers only watch the front.
+topic COOLANT
+  tier OPEN
+  say That water is meant for the reactor. Without it the core runs hot. Everyone at the pump knows that.
+topic CORWIN,MAYOR
+  tier OPEN
+  say I know the mayor's men. They guard the town hall. They work for Corwin and nobody else.
+topic VOSS
+  tier OPEN
+  say Voss came to the pump the night before going missing. Asked how much water we were sending up the coolant line. I told him. He went white.
+topic REACTOR
+  tier OPEN
+  say I don't go near it now. I don't go near anything.
+topic WATER,PUMP,TANKS
+  tier OPEN
+  say Hesper measures the tanks every night. Tell Hesper what I saw.
+topic KEEPERS
+  tier OPEN
+  say The Keepers watch the front gate. Nobody watches the back.
+topic FEVER,SICK
+  tier OPEN
+  say Maybe it was the cold. Maybe it wasn't. I stood a long time in that warm runoff, watching them.

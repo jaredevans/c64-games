@@ -1,0 +1,83 @@
+; Tamsin Reyes, greenhouse grower and the Dimmers' leader (spec: Cast). Starts Guarded, favours Dials.
+; Clues: the REACTOR leaks and plants die by the runoff (Guarded). At Open: LIGHTS in the reactor
+; at night, so VOSS is alive.
+person t
+name TAMSIN
+role GREENHOUSE GROWER
+start GUARDED
+favours DIALS
+greet Tamsin looks up from a row of yellowed beans, hands black with soil.
+deflect I don't know you well enough for that.
+unknown Not something we grow here.
+
+topic NAME
+  tier WARY
+  say Tamsin Reyes. I grow what this town eats, in the GREENHOUSE. What's left of it.
+topic JOB,WORK
+  tier WARY
+  say Beans, squash, a little corn. Half the beds by the runoff ditch are dead this year.
+topic GREENHOUSE
+  tier WARY
+  say Pre-war glass, patched with plastic. The reactor heats it. Some days I wish it didn't.
+topic DIMMERS
+  tier WARY
+  say That's us. We want the reactor shut down safely, before it fails on its own. BRANDT calls us traitors.
+topic KEEPERS
+  tier WARY
+  say Brandt's people. They guard a dying machine like it was a saint.
+topic CARAVAN
+  tier WARY
+  say I trade squash to the caravans for tools. Fair people, mostly.
+topic PIP
+  tier WARY
+  say Pip trades me pretty stones for carrots. Good kid.
+topic GHOST
+  tier WARY
+  say Pip told you about the ghost too? That kid tells everyone.
+topic OUTSIDERS,SABOTAGE
+  tier WARY
+  say Sabotage? Nobody needs to sabotage a reactor that old. It's dying on its own.
+topic WATER
+  tier WARY
+  say Hesper sends what water there is. Less every month.
+topic REACTOR
+  tier GUARDED
+  say It leaks. Its waste water runs down into my ditch, and everything planted by that ditch dies. It will kill this town slower than thirst, but it will kill it.
+  else Ask the Keepers. They'll tell you it's holy.
+topic RUNOFF,DITCH
+  tier GUARDED
+  say The ditch runs downhill from the compound. Warm water, more of it every week. Plants by it go brown in a day.
+topic BRANDT,WARDEN
+  tier GUARDED
+  say Ilse Brandt. Stubborn as rust. Honest, though. I'll give the Warden that.
+topic TANKS
+  tier GUARDED
+  say When the tanks run short, the greenhouse goes dry first. The mayor says use less.
+topic CORWIN,MAYOR
+  tier GUARDED
+  say The mayor calls us troublemakers. Then he sends for the first squash of the year.
+topic ODALYS,FINCH
+  tier GUARDED
+  say Odalys Finch. Sharp trader. Buys water, never food. Odd, for a caravan.
+topic BARRELS
+  tier GUARDED
+  say The traders roll their barrels out of town full and back in empty.
+topic JORY
+  tier GUARDED
+  say Poor Jory. Worked nights at the pump, then the fever took hold. Send your medic, if you have one.
+topic VOSS
+  tier OPEN
+  say Everyone says Voss is gone. I say Voss is in there. I've seen LIGHTS in the reactor at night, from my window. And somebody keeps that thing from dying.
+  else Voss was a good man. Was. That's all.
+topic LIGHTS
+  tier OPEN
+  say A lamp, low down by the dome, after midnight. The Keepers don't go in there. So who does?
+topic COOLANT
+  tier OPEN
+  say Coolant is just water through the core. Short of it, the reactor runs hot, and hot reactors sputter. Ask a tinker.
+topic VALVE
+  tier OPEN
+  say If someone has been at the coolant valve, that would explain my warm ditch.
+topic CARTS
+  tier OPEN
+  say Carts at night, on the south road. I always thought it was the caravans.
