@@ -44,7 +44,6 @@ start
         lda #>SCREEN_A
         jsr view_draw_full
         jsr hud_draw
-        jsr status_init
         jsr sprite_init
         lda #FINE_REST_X
         sta fine_x
@@ -56,6 +55,7 @@ start
         sta frame_count
         sta frame_count+1
         jsr walk_init
+        jsr status_init         ; needs the leader's cell (walk_init)
 !ifdef STRESS {                 ; test mode: 7 more sprites whose DMA covers lines 212-213
         ldx #1
 -       lda #SPR_LEADER_PTR

@@ -24,6 +24,12 @@ def main():
     want = expect(lab, 'TOWN SQUARE', 0)
     vice.check(a == want and b == want, f'Cinderhill start: row 0 = {a!r}')
 
+    prg = vice.build({'TESTMAP': 1})     # start (29,19) is outside WEST SIDE (x <= 19): the place
+    lab = vice.labels(prg)                # lookup must use the real start, not the cell (0,0)
+    a, b = both_rows(prg, 0, 4.0)
+    want = expect(lab, 'TEST MAP', 0)
+    vice.check(a == want and b == want, f'test map start (29,19): row 0 = {a!r}')
+
     prg = vice.build({'TESTMAP': 1, 'AUTOWALK': 7})
     lab = vice.labels(prg)
     a, b = both_rows(prg, 0, 6.0)
