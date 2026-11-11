@@ -25,9 +25,10 @@ def main():
     x0, y0 = vice.screen_box(shot)
     same = lambda a, b: shot.crop((x0, y0 + a, x0 + 320, y0 + b)).tobytes() == ref.crop((x0, y0 + a, x0 + 320, y0 + b)).tobytes()
     vice.check(same(0, 8), 'status line as before')
-    # display row 23 = raster 74, the map's first visible line: its first few pixels depend on where the
-    # unblank write lands (poll phase vs. the main loop - an M1 trait), so compare from row 24
-    vice.check(same(16, 23) and same(24, 168), 'map band, leader and townspeople as before')
+    # the visible map window is display rows 24-159 (raster 75-210). The split lines around it (74, 211,
+    # 218) start/end a few pixels earlier or later depending on where the main loop is when the raster
+    # IRQ fires (an M1 trait that differs between builds), so they are not compared here
+    vice.check(same(24, 160), 'map band, leader and townspeople as before')
     vice.check(same(168, 184), 'names and health bars as before')
     cyan = sum(1 for y in range(23, 160) for x in range(320) if nearest_index(shot.getpixel((x0 + x, y0 + y))) == CYAN)
     vice.check(cyan >= 40, f'Hesper drawn again ({cyan} cyan px)')
