@@ -22,8 +22,8 @@ technical deep-dives.
 
 A prototype party RPG set in a ruined town whose failing reactor holds a mystery: walk Cinderhill
 with a four-person squad and talk to its wary townspeople by typing keywords, earning their trust
-one conversation at a time. The smooth-scrolling town of Cinderhill and its people are in; the
-talking screen comes next. See [`nuclear-land/README.md`](nuclear-land/README.md) for status, build instructions,
+one conversation at a time. The smooth-scrolling town of Cinderhill, its people and the first full
+conversation (with Hesper, the water-keeper) are in; dialogue for the rest of the town comes next. See [`nuclear-land/README.md`](nuclear-land/README.md) for status, build instructions,
 and how it works.
 
 ## License
