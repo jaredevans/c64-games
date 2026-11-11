@@ -18,8 +18,9 @@ X64SC = '/Applications/vice-arm64-gtk3-3.10/bin/x64sc'
 CYCLES_PER_FRAME = 19656
 # deterministic pixels: pepto palette, no CRT filter (nearest-colour matching in c64render)
 # -default ignores the user's vicerc (theirs is NTSC); +saveres stops VICE writing these flags back into
-# it on exit (their vicerc has SaveResourcesOnExit=1); -pal = the spec's machine
-VIDEO = ['-default', '+saveres', '-pal', '-VICIIextpal', '-VICIIpalette', 'pepto-pal.vpl', '-VICIIfilter', '0']
+# it on exit (their vicerc has SaveResourcesOnExit=1); +autostart-delay-random makes every run boot at
+# the same emulated time (VICE randomises the autostart delay by default); -pal = the spec's machine
+VIDEO = ['-default', '+saveres', '+autostart-delay-random', '-pal', '-VICIIextpal', '-VICIIpalette', 'pepto-pal.vpl', '-VICIIfilter', '0']
 
 sys.path.insert(0, str(NL / 'tools'))
 
