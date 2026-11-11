@@ -16,6 +16,16 @@ splash in multicolor bitmap mode, and a SID soundtrack remixed from the medieval
 chant. See [`aretype/README.md`](aretype/README.md) for gameplay, build instructions, and
 technical deep-dives.
 
+### [Nuclear Land](nuclear-land/) — post-apocalyptic party RPG (work in progress)
+
+<a href="nuclear-land/"><img src="nuclear-land/nuclear-land-preview.png" alt="Nuclear Land walking screen" width="600" /></a>
+
+A prototype party RPG set in a ruined town whose failing reactor holds a mystery: walk Cinderhill
+with a four-person squad and talk to its wary townspeople by typing keywords, earning their trust
+one conversation at a time. The smooth-scrolling walking engine is done; the town and its people
+come next. See [`nuclear-land/README.md`](nuclear-land/README.md) for status, build instructions,
+and how it works.
+
 ## License
 
 See [LICENSE](LICENSE).
