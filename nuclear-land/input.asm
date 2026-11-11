@@ -513,6 +513,29 @@ walk_script
         +press 2, 2, K2_T
         +idle 1
 }
+!if AUTOWALK = 23 {             ; review #1: T pressed while K (down) is held, then leave
+        +to_hesper
+        +press 2, 7, K7_2
+        +idle 4
+        !byte 1, K_NONE, K_NONE, K2_T, K_NONE, K4_K, K_NONE, K_NONE, K_NONE   ; 1 frame: K is up again after
+        +idle 1
+}
+!if AUTOWALK = 25 {             ; review #5: talk, leave, then 2 scrolling steps down
+        +to_hesper
+        +press 2, 7, K7_2
+        +idle 4
+        +press 2, 2, K2_T
+        +idle 1
+        +hold 16, K_NONE, K_NONE, K4_K, K_NONE, K_NONE
+        +idle 1
+}
+!if AUTOWALK = 26 {             ; review #5 reference: the same 2 steps down, no talk
+        +to_hesper
+        +press 2, 7, K7_2
+        +idle 4
+        +hold 16, K_NONE, K_NONE, K4_K, K_NONE, K_NONE
+        +idle 1
+}
 !if AUTOWALK = 13 {             ; tests/test_actions.py: AUTOWALK=10's route, then T (held), 2, U
         +hold 64, K_NONE, K_NONE, K_NONE, K5_L, K_NONE
         +hold 48, K_NONE, K_NONE, K4_I, K_NONE, K_NONE

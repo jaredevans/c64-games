@@ -102,7 +102,10 @@ main_loop
 +
         jsr input_read
         jsr squad_act
-        jsr walk_update
+        lda game_mode           ; T just opened the talking screen: no walking this frame
+        beq +                   ; (a held direction key would start a step behind it)
+        jmp main_loop
++       jsr walk_update
         jsr people_update
         jsr sprite_place
 !ifndef STRESS {                ; (STRESS programs sprites 1-7 itself)

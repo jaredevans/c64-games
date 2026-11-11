@@ -20,7 +20,10 @@ def main():
     set_palette(vice.palette())
     prg = vice.build({'AUTOWALK': 18, 'TYPESCRIPT': 4})
     lab = vice.labels(prg)
-    font = vice.memread(prg, lab['talk_font'], 1032, wait_s=8.0)
+    font, redraws = vice.memread(prg, lab['talk_font'], 1032, wait_s=8.0, extra_reads=[(8.0, lab['conv_redraws'], 1)])
+    # review #3: a full redraw of the area takes ~6 frames, so it happens at most once per question
+    # (the player's line and the whole answer are stored first), never once per line
+    vice.check(1 <= redraws[0] <= len(WORDS), f'{redraws[0]} full redraws for {len(WORDS)} questions')
     shot = vice.screenshot(prg, AT)
     shot.save(vice.BUILD / 'talk_text.png')
     t = Talk('h') if 'talk_meet' in lab else StubTalk('h')     # Task 4: answers are a stub

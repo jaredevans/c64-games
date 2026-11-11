@@ -33,6 +33,24 @@ def main():
     cyan = sum(1 for y in range(23, 160) for x in range(320) if nearest_index(shot.getpixel((x0 + x, y0 + y))) == CYAN)
     vice.check(cyan >= 40, f'Hesper drawn again ({cyan} cyan px)')
 
+    # review #1: T pressed while a direction key is held enters the conversation without stepping;
+    # after leaving, the town is the same as when nothing happened (AUTOWALK 21)
+    prg = vice.build({'AUTOWALK': 23, 'TYPESCRIPT': 1})
+    lab = vice.labels(prg)
+    shot = vice.screenshot(prg, AT)
+    shot.save(vice.BUILD / 'talk_leave_tk.png')
+    pos = vice.memread(prg, lab['leader_x'], 2, wait_s=6.0)
+    vice.check(tuple(pos) == (5, 17), f'T + K: no step was taken while talking ({tuple(pos)})')
+    vice.check(shot.crop((x0, y0 + 24, x0 + 320, y0 + 160)).tobytes() ==
+               ref.crop((x0, y0 + 24, x0 + 320, y0 + 160)).tobytes(), 'T + K: town as before')
+
+    # review #5: after leaving, two steps down scroll the map exactly as without the talk
+    a = vice.screenshot(vice.build({'AUTOWALK': 25, 'TYPESCRIPT': 1}), AT)
+    b = vice.screenshot(vice.build({'AUTOWALK': 26}), AT)
+    vice.check(a.crop((x0, y0 + 24, x0 + 320, y0 + 160)).tobytes() ==
+               b.crop((x0, y0 + 24, x0 + 320, y0 + 160)).tobytes(),
+               'two scrolling steps after leaving: map band as without the talk')
+
     # TYPESCRIPT 7: ask NAME (Dials: trust 0 -> 1), leave; step away and back, T again (nothing typed)
     prg = vice.build({'AUTOWALK': 22, 'TYPESCRIPT': 7})
     lab = vice.labels(prg)

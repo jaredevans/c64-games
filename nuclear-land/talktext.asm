@@ -264,7 +264,11 @@ conv_line
         bne -
         lda #CONV_LINES-1
         jsr conv_store
-        jmp conv_redraw
+        lda conv_batch          ; in a batch: redraw once at conv_end, not per line
+        beq +
+        sta conv_dirty
+        rts
++       jmp conv_redraw
 .add    jsr conv_store
         inc conv_n
         jmp conv_draw_line
@@ -313,8 +317,27 @@ conv_store
 +       lda conv_i
         rts
 
+; conv_begin / conv_end: lines added in between are stored at once but the area is redrawn (~6
+; frames) only once, at conv_end, if it scrolled
+conv_begin
+        lda #1
+        sta conv_batch
+        lda #0
+        sta conv_dirty
+        rts
+conv_end
+        lda #0
+        sta conv_batch
+        lda conv_dirty
+        beq +
+        lda #0
+        sta conv_dirty
+        jmp conv_redraw
++       rts
+
 ; conv_redraw: draw every stored line
 conv_redraw
+        inc conv_redraws
         lda #0
 -       pha
         jsr conv_draw_line
@@ -384,7 +407,8 @@ talk_key
 .ret    lda input_len
         bne +
         jmp talk_leave
-+       ldx #0                  ; "> WORD" in yellow (upper case: +64 in the mixed set)
++       jsr conv_begin          ; the question and its whole answer: one redraw at most
+        ldx #0                  ; "> WORD" in yellow (upper case: +64 in the mixed set)
         lda #'>'
         sta conv_buf
         lda #' '
@@ -406,6 +430,7 @@ talk_key
         sta bm_fg
         jsr conv_line
         jsr talk_ask
+        jsr conv_end
         lda #0
         sta input_len
         jmp prompt_draw
@@ -424,6 +449,9 @@ conv_buf !fill 16, 0
 conv_lo  !for i, 0, CONV_LINES-1 { !byte <(conv_text + i*24) }
 conv_hi  !for i, 0, CONV_LINES-1 { !byte >(conv_text + i*24) }
 conv_i   !byte 0
+conv_redraws !byte 0           ; full redraws so far (tests)
+conv_batch !byte 0
+conv_dirty !byte 0
 conv_j   !byte 0
 conv_col !fill CONV_LINES, 0
 conv_text !fill CONV_LINES*24, ' '

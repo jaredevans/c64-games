@@ -227,7 +227,8 @@ prompt_draw
         sta TALK_TEXT + ROW_PROMPT*40 + 2,x
         rts
 
-; known_draw: "known: " + the squad's known keywords on rows 19-20
+; known_draw: "known: " + the squad's known keywords on rows 19-20. Whole words only: a word that
+; doesn't fit on row 19 starts row 20; when they don't all fit, the oldest are left out.
 !zone known_draw
 known_draw
         lda #' '
@@ -241,61 +242,95 @@ known_draw
         sta TALK_TEXT + ROW_KNOWN*40,x
         inx
         bne -
-+       stx kd_col
-        jsr known_first         ; the oldest keyword that still fits with all newer ones
++       jsr known_first
+        jsr known_start
 .word   cpy known_n
         beq .out
         sty kd_i
+        jsr known_place         ; kd_col = where this word goes (row 19 or 20)
+        ldy kd_i
         lda known_ids,y
-        jsr kw_ptr              ; zp_src -> keyword text
+        jsr kw_ptr
         ldy #0
         ldx kd_col
 -       lda (zp_src),y
         beq +
-        cpx #80
-        bcs .out
         sta TALK_TEXT + ROW_KNOWN*40,x
         inx
         iny
         cpy #KW_LEN
         bne -
-+       inx                     ; space
-        stx kd_col
-        ldy kd_i
++       ldy kd_i
         iny
         bne .word
 .out    rts
 
-; known_first: Y = index of the oldest known keyword such that it and every newer one fit after
-; "known: " on the two rows (whole words, one space apart)
-known_first
+; known_start: layout cursor at row 19, after "known: "
+known_start
+        lda #0
+        sta kd_row
         lda #7
         sta kd_w
-        ldy known_n
-.prev   dey
-        bmi .all
-        sty kd_i
+        rts
+
+; known_place: lay out word kd_i: C=1 if it doesn't fit (no rows left); else kd_col = its cell
+; (0-79 from row 19's start) and the cursor moves past it and a space
+!zone known_place
+known_place
+        ldy kd_i
         lda known_ids,y
         jsr kw_ptr
         ldy #0
-.len    lda (zp_src),y
+-       lda (zp_src),y          ; Y = length
         beq +
         iny
         cpy #KW_LEN
-        bne .len
-+       tya                     ; width so far + this word must stay <= 80
+        bne -
++       sty kd_len
+        tya
         clc
         adc kd_w
-        cmp #81
-        bcs .stop
-        adc #1                  ; + the space after it
+        cmp #41
+        bcc .fits
+        lda kd_row              ; past column 40: next row, if there is one
+        bne .full
+        inc kd_row
+        lda #0
         sta kd_w
-        ldy kd_i
-        jmp .prev
-.stop   ldy kd_i
-        iny
+.fits   lda kd_row              ; kd_col = row * 40 + column
+        beq +
+        lda #40
++       clc
+        adc kd_w
+        sta kd_col
+        lda kd_w
+        clc
+        adc kd_len
+        adc #1
+        sta kd_w
+        clc
         rts
-.all    ldy #0
+.full   sec
+        rts
+
+; known_first: Y = the oldest keyword such that it and all newer ones fit (whole words, 2 rows)
+!zone known_first
+known_first
+        ldy #0
+.try    sty kd_s
+        jsr known_start
+.next   cpy known_n
+        beq .ok
+        sty kd_i
+        jsr known_place
+        bcs .drop
+        ldy kd_i
+        iny
+        bne .next
+.drop   ldy kd_s                ; doesn't fit: leave out one more of the oldest
+        iny
+        bne .try
+.ok     ldy kd_s
         rts
 
 ; kw_ptr: zp_src = kw_text + A * 12
@@ -518,6 +553,9 @@ kd_col        !byte 0
 trust         !fill 8, 0          ; by cast index (Task 5: the rules)
 kd_i          !byte 0
 kd_w          !byte 0
+kd_row        !byte 0
+kd_len        !byte 0
+kd_s          !byte 0
 known_n       !byte 4
 known_ids     !byte 0, 1, 2, 3
               !fill 28, 0

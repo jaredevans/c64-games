@@ -28,6 +28,8 @@ MEMBERS = ['VESNA', 'DIALS', 'MAREN', 'ROOK']
 CAST = 'hbtjopcv'                       # cast index order (make_map CAST, then Voss)
 INITIAL_KNOWN = ['NAME', 'JOB', 'REACTOR', 'VOSS']
 WIDTH = 24
+MAX_LINES = 15          # the conversation area: an answer plus its question line must fit
+MAX_TOPICS = 32         # talkrules.asm keeps 32 asked-bits per person
 CAPS = re.compile(r"\b[A-Z]{3,}\b")
 
 
@@ -91,6 +93,19 @@ def parse(path):
         t['say'] = wrap(t['say_text'])
         t['else'] = wrap(t['else_text']) if 'else_text' in t else p['deflect']
         t['reveals'] = list(dict.fromkeys(CAPS.findall(t['say_text'])))
+    if len(p['topics']) > MAX_TOPICS:
+        raise ValueError(f'{path}: {len(p["topics"])} topics, at most {MAX_TOPICS} (one asked-bit each)')
+    for line in all_lines(p):
+        if len(line) > WIDTH:
+            raise ValueError(f'{path}: {line!r} is wider than {WIDTH} columns')
+    for name, t in p['topics'].items():
+        for kind in ('say', 'else'):
+            if len(t[kind]) > MAX_LINES - 1:
+                raise ValueError(f'{path}: topic {name} {kind} is {len(t[kind])} lines; at most '
+                                 f'{MAX_LINES - 1} fit under the question in the conversation area')
+    for kind in ('greet', 'deflect', 'unknown'):
+        if len(p[kind]) > MAX_LINES - 1:
+            raise ValueError(f'{path}: {kind} is {len(p[kind])} lines, at most {MAX_LINES - 1}')
     keys = [(k, name) for name, t in p['topics'].items() for k in t['keys']]
     for i, (a, _) in enumerate(keys):
         for b, _ in keys[i + 1:]:

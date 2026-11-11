@@ -14,6 +14,21 @@ from talksim import Talk, VESNA, DIALS, MAREN  # noqa: E402
 WORDS = 'tanks name job tanks wat wate banana name corwin'.split()     # TYPESCRIPT 5
 
 
+def known_layout(words):
+    """Rows 19-20 (80 chars) for 'KNOWN: ' + words, wrapping whole words onto row 20; None if they
+    don't fit."""
+    cells = list('KNOWN: '.ljust(80))
+    row, col = 0, 7
+    for w in words:
+        if col + len(w) > 40:
+            if row:
+                return None
+            row, col = 1, 0
+        cells[row * 40 + col:row * 40 + col + len(w)] = w
+        col += len(w) + 1
+    return ''.join(cells)
+
+
 def run(autowalk, leader):
     prg = vice.build({'AUTOWALK': autowalk, 'TYPESCRIPT': 5})
     lab = vice.labels(prg)
@@ -43,20 +58,23 @@ def main():
     m, start, _ = run(20, VESNA)
     vice.check(start == 1, 'Vesna at the first meeting: starts Guarded')
 
+    # review #4: the leader bonuses, read from the game after one first question (NAME) each:
+    # Dials 0+1, Maren 0+1+1 (favoured), Vesna 1 (first meeting) +1
+    for autowalk, name, want in ((18, 'Dials', 1), (19, 'Maren', 2), (20, 'Vesna', 2)):
+        prg = vice.build({'AUTOWALK': autowalk, 'TYPESCRIPT': 7})
+        tr = vice.memread(prg, vice.labels(prg)['trust'], 1, wait_s=6.0)
+        vice.check(tr[0] == want, f'{name} leads, one NAME: trust {tr[0]} == {want}')
+
     # Review Focus 5: 30 known keywords (KNOWNTEST preloads them) - only the newest that fit show
     prg = vice.build({'AUTOWALK': 18, 'TYPESCRIPT': 6, 'KNOWNTEST': 1})
     lab = vice.labels(prg)
     rows, kn, kids = vice.memread(prg, 0xc400 + 19 * 40, 120, wait_s=8.0, extra_reads=[
         (8.0, lab['known_n'], 1), (8.0, lab['known_ids'], 32)])
     words = [make_dialogue.parse_all()[1][i] for i in kids[:kn[0]]]
-    shown, width = [], len('KNOWN: ')
-    for w in reversed(words):
-        if width + len(w) > 80:
-            break
-        shown.insert(0, w)
-        width += len(w) + 1
-    want = vice.scr(('KNOWN: ' + ' '.join(shown)).ljust(80))
-    vice.check(kn[0] >= 20 and rows[:80] == want, f'Known rows hold the newest {len(shown)} of {kn[0]}: {rows[:80]!r}')
+    s = next(s for s in range(len(words) + 1) if known_layout(words[s:]))
+    want = vice.scr(known_layout(words[s:]))
+    vice.check(kn[0] >= 20 and rows[:80] == want,
+               f'Known rows hold the newest {len(words) - s} of {kn[0]}, whole words: {rows[:80]!r}')
     vice.check(rows[80:120].startswith(vice.scr('DIALS LEADS. ASK ABOUT:')), 'the row below is untouched')
 
 

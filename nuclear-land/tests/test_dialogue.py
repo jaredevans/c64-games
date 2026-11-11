@@ -66,6 +66,20 @@ def main():
             check(False, 'PUMP and PUMPS (same first 4 letters) rejected')
         except ValueError:
             check(True, 'PUMP and PUMPS (same first 4 letters) rejected')
+    base = 'person h\nname X\nrole Y\nstart WARY\ngreet Hi.\ndeflect No.\nunknown What?\n'
+    for why, body in (('a 25-letter word (no line fits 24 columns)',
+                       'topic PUMP\n  tier WARY\n  say ' + 'A' * 25 + '\n'),
+                      ('an answer longer than the 15-line conversation area',
+                       'topic PUMP\n  tier WARY\n  say ' + 'word ' * 80 + '\n'),
+                      ('33 topics (32 asked-bits per person)',
+                       ''.join(f'topic K{chr(65 + i // 26)}{chr(65 + i % 26)}X\n  tier WARY\n  say A.\n' for i in range(33)))):
+        with tempfile.TemporaryDirectory() as td:
+            (Path(td) / 'bad.txt').write_text(base + body)
+            try:
+                make_dialogue.build(Path(td), Path(td) / 'out.inc')
+                check(False, f'rejected: {why}')
+            except ValueError:
+                check(True, f'rejected: {why}')
 
 
 if __name__ == '__main__':
